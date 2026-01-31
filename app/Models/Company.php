@@ -10,6 +10,7 @@ class Company extends Model
 {
     use HasFactory, HasUuids;
 
+    
     protected $fillable = [
         'uuid',
         'name',
@@ -24,4 +25,5 @@ class Company extends Model
     {
         return $this->hasMany(User::class);
     }
+
 }

@@ -17,3 +17,9 @@ create service
 create repository service
 
 create resource [ php artisan make:resource UserResource ]
+
+php artisan key:generate
+
+php artisan migrate
+
+php artisan serve
