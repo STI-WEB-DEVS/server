@@ -1,53 +1,133 @@
 <?php
 
+
+
 namespace App\Http\Controllers;
 
+
+
 use App\Service\CompanyService;
+
+use Illuminate\Http\JsonResponse;
+
 use Illuminate\Http\Request;
 
+use Illuminate\Validation\ValidationException;
+
+
+
 class CompanyController extends Controller
+
 {
-    private $companyService;
+
+    private CompanyService $companyService;
+
+
 
     public function __construct(CompanyService $companyService)
+
     {
+
         $this->companyService = $companyService;
+
     }
 
-    public function index()
+
+
+    public function index(): JsonResponse
+
     {
-        return $this->companyService->listCompanies();
+
+        return response()->json($this->companyService->listCompanies());
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+
+
+    public function store(Request $request): JsonResponse
+
     {
-        return $this->companyService->createCompany($request);
+
+        try {
+
+            $company = $this->companyService->createCompany($request);
+
+            return response()->json($company, 201);
+
+        } catch (ValidationException $e) {
+
+            return response()->json(['errors' => $e->errors()], 422);
+
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Server error'], 500);
+
+        }
+
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+
+
+    public function show(string $id): JsonResponse
+
     {
-        //
+
+        try {
+
+            $company = $this->companyService->getCompany($id);
+
+            return response()->json($company);
+
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Company not found'], 404);
+
+        }
+
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+
+
+    public function update(Request $request, string $id): JsonResponse
+
     {
-        //
+
+        try {
+
+            $company = $this->companyService->updateCompany($request, $id);
+
+            return response()->json($company);
+
+        } catch (ValidationException $e) {
+
+            return response()->json(['errors' => $e->errors()], 422);
+
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => $e->getMessage()], 404);
+
+        }
+
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+
+
+    public function destroy(string $id): JsonResponse
+
     {
-        //
+
+        try {
+
+            $this->companyService->deleteCompany($id);
+
+            return response()->json(['message' => 'Company deleted'], 200);
+
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Company not found'], 404);
+
+        }
+
     }
+
 }
