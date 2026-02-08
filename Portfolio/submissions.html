@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Submissions | Khyle</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { poppins: ["Poppins", "sans-serif"] },
+            colors: { brand: "purple" },
+          },
+        },
+      };
+    </script>
+  </head>
+
+  <body class="bg-black text-white font-poppins min-h-screen p-6 md:p-12">
+    <section class="max-w-6xl mx-auto">
+      <header class="mb-10 flex justify-between items-center">
+        <h1 class="text-3xl font-bold tracking-tight">
+          MESSAGE <span class="text-brand">LOG</span>
+        </h1>
+        <a
+          href="index.html"
+          class="px-6 py-2 border border-brand text-brand rounded-full hover:bg-brand hover:text-black transition-all"
+        >
+          &larr; Back to Home
+        </a>
+      </header>
+
+      <div
+        class="bg-[#111] border border-brand/30 rounded-xl shadow-[0_0_15px_rgba(128,0,128,0.2)] overflow-hidden"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-brand/20 border-b border-brand/30">
+                <th class="px-6 py-4 text-xs font-bold text-brand uppercase">
+                  Timestamp
+                </th>
+                <th class="px-6 py-4 text-xs font-bold text-brand uppercase">
+                  Name
+                </th>
+                <th class="px-6 py-4 text-xs font-bold text-brand uppercase">
+                  Email
+                </th>
+                <th class="px-6 py-4 text-xs font-bold text-brand uppercase">
+                  Message
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              id="submissions-list"
+              class="divide-y divide-gray-800"
+            ></tbody>
+          </table>
+        </div>
+
+        <div id="empty-state" class="hidden py-20 text-center">
+          <p class="text-gray-500 italic font-medium">
+            No messages received yet.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-4 text-right">
+        <button
+          onclick="clearStorage()"
+          class="text-red-500 text-sm hover:underline"
+        >
+          Clear All Messages
+        </button>
+      </div>
+    </section>
+
+    <script>
+      function viewSubmissions() {
+        const list = document.getElementById("submissions-list");
+        const data =
+          JSON.parse(localStorage.getItem("contact_submissions")) || [];
+
+        if (data.length === 0) {
+          const empty = document.getElementById("empty-state");
+          if (empty) empty.classList.remove("hidden");
+          return;
+        }
+
+        list.innerHTML = data
+          .reverse()
+          .map(
+            (entry) => `
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 text-xs font-mono text-gray-400 whitespace-nowrap">${entry.submittedAt}</td>
+                        <td class="px-6 py-4 font-bold text-white">${entry.name}</td>
+                        <td class="px-6 py-4 text-brand">${entry.email}</td>
+                        <td class="px-6 py-4 text-gray-300 min-w-[200px]">${entry.message}</td>
+                    </tr>
+                `,
+          )
+          .join("");
+      }
+
+      function clearStorage() {
+        if (confirm("Are you sure you want to delete all messages?")) {
+          localStorage.removeItem("contact_submissions");
+          location.reload();
+        }
+      }
+
+      // Run on load
+      viewSubmissions();
+    </script>
+  </body>
+</html>
