@@ -1,22 +1,26 @@
-    <?php
+<?php
 
     namespace App\Service;
 
     use App\Repository\OrderRepository;
     use App\Repository\CustomerRepository;
+    use App\Repository\ProductRepository;
     use App\Http\Resources\OrderResource;
 
     class OrderService
     {
         private OrderRepository $orderRepository;
         private CustomerRepository $customerRepository;
+        private ProductRepository $productRepository;
 
         public function __construct(
             OrderRepository $orderRepository,
-            CustomerRepository $customerRepository
+            CustomerRepository $customerRepository,
+            ProductRepository $productRepository
         ) {
             $this->orderRepository = $orderRepository;
             $this->customerRepository = $customerRepository;
+            $this->productRepository = $productRepository;
         }
         
 
@@ -49,31 +53,36 @@
             $products = [];
 
             foreach ($payload['products'] ?? [] as $item) {
-                $lineTotal = $item['price'] * $item['quantity'];
+                if (!isset($item['product_uuid'])) {
+                    throw new \InvalidArgumentException("Each product must include a product_uuid.");
+                }
+            
+                $product = $this->productRepository->findByUuid($item['product_uuid']);
+            
+                $lineTotal = $product->price * $item['quantity'];
                 $total += $lineTotal;
-
+            
                 $products[] = [
-                    'product_name' => $item['product_name'],
-                    'price'        => $item['price'],
-                    'quantity'     => $item['quantity'],
-                    'line_total'   => $lineTotal,
+                    'product_id' => $product->id,
+                    'quantity'   => $item['quantity'],
+                    'unit_price' => $product->price,   
                 ];
             }
-
-            // Only pass fields that exist in orders table
+            
+            
             $orderData = [
                 'customer_id'  => $payload['customer_id'],
                 'total_amount' => $total,
             ];
-
+            
             $order = $this->orderRepository->create($orderData);
-
-            // Save products separately if you have an order_items table
+            
             foreach ($products as $product) {
                 $order->items()->create($product);
             }
-
+            
             return new OrderResource($order->load('items'));
+            
         }
 
 
