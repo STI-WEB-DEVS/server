@@ -22,7 +22,7 @@
             $this->customerRepository = $customerRepository;
             $this->productRepository = $productRepository;
         }
-        
+
 
         public function listOrder(int $perPage = 15)
         {
@@ -30,16 +30,6 @@
             return OrderResource::collection($collection);
         }
 
-        // public function createOrder(array $payload)
-        // {
-        //     $customer = $this->customerRepository->findByUuid($payload->cu)
-
-        //     $model = $this->orderRepository->create($payload);
-        //     // add to payload $customer->id
-        //     return new OrderResource($model);
-        // }
-
-        //'
         public function createOrder(array $payload)
         {
             if (!isset($payload['customer_uuid'])) {
@@ -56,37 +46,35 @@
                 if (!isset($item['product_uuid'])) {
                     throw new \InvalidArgumentException("Each product must include a product_uuid.");
                 }
-            
+
                 $product = $this->productRepository->findByUuid($item['product_uuid']);
-            
+
                 $lineTotal = $product->price * $item['quantity'];
                 $total += $lineTotal;
-            
+
                 $products[] = [
                     'product_id' => $product->id,
                     'quantity'   => $item['quantity'],
-                    'unit_price' => $product->price,   
+                    'unit_price' => $product->price,
                 ];
             }
-            
-            
+
+
             $orderData = [
                 'customer_id'  => $payload['customer_id'],
                 'total_amount' => $total,
             ];
-            
+
             $order = $this->orderRepository->create($orderData);
-            
+
             foreach ($products as $product) {
                 $order->items()->create($product);
             }
-            
+
             return new OrderResource($order->load('items'));
-            
+
         }
 
-
-        //'
         public function getOrder(string $uuid)
         {
             $model = $this->orderRepository->findByUuid($uuid);

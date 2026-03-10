@@ -10,13 +10,18 @@ class Order extends Model
     use HasUuids;
 
     protected $fillable = [
-        'customer_id', 
+        'customer_id',
         'total_amount'
     ];
 
     public function uniqueIds(): array
     {
         return ['uuid'];
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function items()
