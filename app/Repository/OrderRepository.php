@@ -12,6 +12,11 @@ class OrderRepository
         return Order::latest()->paginate($perPage);
     }
 
+    public function paginateWithRelations(int $perPage = 15)
+    {
+        return Order::with(['customer', 'items.product'])->latest()->paginate($perPage);
+    }
+
     public function paginateByField(string $field, $value, int $perPage = 15)
     {
         return Order::where($field, $value)->latest()->paginate($perPage);
@@ -54,6 +59,8 @@ class OrderRepository
 
     public function getByCustomerId(int $customerId)
     {
-        return Order::where('customer_id', $customerId)->get();
+        return Order::with(['customer', 'items.product'])
+            ->where('customer_id', $customerId)
+            ->get();
     }
 }
