@@ -13,9 +13,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::apiResources([
     'companies' => CompanyController::class,
     'languages' => LanguageController::class,
-    'products'  => ProductController::class,
+    'products' => ProductController::class,
     'customers' => CustomerController::class,
-    'orders'    => OrderController::class,
+    'orders' => OrderController::class,
 ]);
 
 // Order list per customer
