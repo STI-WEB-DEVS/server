@@ -35,7 +35,11 @@
                 throw new \InvalidArgumentException("Customer UUID is required to place an order.");
             }
 
-            $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
+            try {
+                $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                throw new \InvalidArgumentException("Customer not found.");
+            }
             $payload['customer_id'] = $customer->id;
 
             $total = 0;
@@ -46,7 +50,11 @@
                     throw new \InvalidArgumentException("Each product must include a product_uuid.");
                 }
 
-                $product = $this->productRepository->findByUuid($item['product_uuid']);
+                try {
+                    $product = $this->productRepository->findByUuid($item['product_uuid']);
+                } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                    throw new \InvalidArgumentException("Product not found: " . $item['product_uuid']);
+                }
 
                 $lineTotal = $product->price * $item['quantity'];
                 $total += $lineTotal;
