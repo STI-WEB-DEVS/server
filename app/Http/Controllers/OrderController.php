@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\OrderStoreRequest;
 use App\Service\OrderService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class OrderController extends Controller
 {
@@ -20,9 +20,9 @@ class OrderController extends Controller
         return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
-    public function store(Request $request)
+    public function store(OrderStoreRequest $request)
     {
-        return $this->orderService->createOrder($request->all());
+        return $this->orderService->createOrder($request->validated());
     }
 
     public function show(string $uuid)
@@ -30,19 +30,14 @@ class OrderController extends Controller
         return $this->orderService->getOrder($uuid);
     }
 
-    public function update(Request $request, string $uuid)
-    {
-        return $this->orderService->updateOrder($uuid, $request->all());
-    }
-
     public function destroy(string $uuid)
     {
         $this->orderService->deleteOrder($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-    
-    public function restore(string $uuid)
+
+    public function listByCustomer(Request $request, string $customerUuid)
     {
-        return $this->orderService->restoreOrder($uuid);
+        return $this->orderService->listOrdersByCustomer($customerUuid, $request->input('per_page', 15));
     }
 }

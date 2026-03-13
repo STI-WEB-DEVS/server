@@ -2,14 +2,17 @@
 
 namespace App\Service;
 
+use App\Models\Customer;
+use App\Models\Product;
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
+use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
     private OrderRepository $orderRepository;
 
-    public function __construct(OrderRepository $orderRepository) 
+    public function __construct(OrderRepository $orderRepository)
     {
         $this->orderRepository = $orderRepository;
     }
@@ -22,8 +25,34 @@ class OrderService
 
     public function createOrder(array $payload)
     {
-        $model = $this->orderRepository->create($payload);
-        return new OrderResource($model);
+        return DB::transaction(function () use ($payload) {
+            $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+
+            $order = $this->orderRepository->create([
+                'customer_id'  => $customer->id,
+                'total_amount' => 0,
+            ]);
+
+            $total = 0;
+            foreach ($payload['items'] as $item) {
+                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+                $unitPrice = $product->price;
+                $quantity  = $item['quantity'];
+
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'quantity'   => $quantity,
+                    'unit_price' => $unitPrice,
+                ]);
+
+                $total += $unitPrice * $quantity;
+            }
+
+            $order->update(['total_amount' => $total]);
+            $order->load(['customer', 'items.product']);
+
+            return new OrderResource($order);
+        });
     }
 
     public function getOrder(string $uuid)
@@ -32,27 +61,15 @@ class OrderService
         return new OrderResource($model);
     }
 
-    public function getOrderByField(string $field, $value)
+    public function listOrdersByCustomer(string $customerUuid, int $perPage = 15)
     {
-        $model = $this->orderRepository->findByField($field, $value);
-        return new OrderResource($model);
-    }
-
-    public function updateOrder(string $uuid, array $payload)
-    {
-        $model = $this->orderRepository->update($uuid, $payload);
-        return new OrderResource($model);
+        $collection = $this->orderRepository->findByCustomerUuid($customerUuid, $perPage);
+        return OrderResource::collection($collection);
     }
 
     public function deleteOrder(string $uuid)
     {
         $this->orderRepository->delete($uuid);
         return true;
-    }
-
-    public function restoreOrder(string $uuid)
-    {
-        $model = $this->orderRepository->restore($uuid);
-        return new OrderResource($model);
     }
 }
