@@ -17,9 +17,9 @@ class OrderItemRepository
         return OrderItem::create($payload);
     }
 
-    public function findByUuid(string $uuid)
+    public function findById(int $id)
     {
-        return OrderItem::where('uuid', $uuid)->firstOrFail();
+        return OrderItem::findOrFail($id);
     }
 
     public function findByField(string $field, $value)
@@ -27,22 +27,22 @@ class OrderItemRepository
         return OrderItem::where($field, $value)->firstOrFail();
     }
 
-    public function update(string $uuid, array $payload)
+    public function update(int $id, array $payload)
     {
-        $model = $this->findByUuid($uuid);
+        $model = $this->findById($id);
         $model->update($payload);
         return $model;
     }
 
-    public function delete(string $uuid)
+    public function delete(int $id)
     {
-        $model = $this->findByUuid($uuid);
+        $model = $this->findById($id);
         return $model->delete();
     }
 
-    public function restore(string $uuid)
+    public function restore(int $id)
     {
-        $model = OrderItem::withTrashed()->where('uuid', $uuid)->firstOrFail();
+        $model = OrderItem::withTrashed()->findOrFail($id);
         $model->restore();
         return $model;
     }
