@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerStoreRequest;
+use App\Http\Requests\UpdateCustomerRequest;    
 use App\Service\CustomerService;
 use Illuminate\Http\Request;
 
@@ -30,7 +31,7 @@ class CustomerController extends Controller
         return $this->customerService->getCustomer($uuid);
     }
 
-    public function update(CustomerStoreRequest $request, string $uuid)
+    public function update(UpdateCustomerRequest $request, string $uuid)
     {
         return $this->customerService->updateCustomer($uuid, $request->validated());
     }

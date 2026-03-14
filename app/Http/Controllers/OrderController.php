@@ -36,8 +36,8 @@ class OrderController extends Controller
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
 
-    public function listByCustomer(Request $request, string $customerUuid)
+    public function listByCustomer(string $customerUuid)
     {
-        return $this->orderService->listOrdersByCustomer($customerUuid, $request->input('per_page', 15));
+        return $this->orderService->listOrdersByCustomer($customerUuid, 15);
     }
 }

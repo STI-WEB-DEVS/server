@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Order;
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
 use Illuminate\Support\Facades\DB;
@@ -24,18 +25,19 @@ class OrderService
     }
 
     public function createOrder(array $payload)
-    {
-        return DB::transaction(function () use ($payload) {
-            $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+    {   
+        $customer = Customer::where('uuid', $payload['customer_id'])->firstOrFail();
 
+        if ($customer) {
             $order = $this->orderRepository->create([
                 'customer_id'  => $customer->id,
                 'total_amount' => 0,
             ]);
 
+
             $total = 0;
             foreach ($payload['items'] as $item) {
-                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+                $product = Product::where('uuid', $item['product_id'])->firstOrFail();
                 $unitPrice = $product->price;
                 $quantity  = $item['quantity'];
 
@@ -49,10 +51,9 @@ class OrderService
             }
 
             $order->update(['total_amount' => $total]);
-            $order->load(['customer', 'items.product']);
-
             return new OrderResource($order);
-        });
+        }
+            
     }
 
     public function getOrder(string $uuid)
