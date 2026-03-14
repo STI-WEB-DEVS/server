@@ -11,7 +11,7 @@ class Order extends Model
 
     protected $fillable = [
         'customer_id',
-        'total_amount'
+        'total_amount',
     ];
 
     public function uniqueIds(): array

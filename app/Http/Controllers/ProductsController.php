@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Service\ProductsService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class ProductsController extends Controller
 {
@@ -38,9 +37,10 @@ class ProductsController extends Controller
     public function destroy(string $uuid)
     {
         $this->productsService->deleteProducts($uuid);
+
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-    
+
     public function restore(string $uuid)
     {
         return $this->productsService->restoreProducts($uuid);

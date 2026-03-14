@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Service\OrderItemService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class OrderItemController extends Controller
 {
@@ -38,9 +37,10 @@ class OrderItemController extends Controller
     public function destroy(string $uuid)
     {
         $this->orderItemService->deleteOrderItem($uuid);
+
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-    
+
     public function restore(string $uuid)
     {
         return $this->orderItemService->restoreOrderItem($uuid);

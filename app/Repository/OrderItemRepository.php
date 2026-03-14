@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Models\OrderItem;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderItemRepository
 {
@@ -31,12 +30,14 @@ class OrderItemRepository
     {
         $model = $this->findByUuid($uuid);
         $model->update($payload);
+
         return $model;
     }
 
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
+
         return $model->delete();
     }
 
@@ -44,6 +45,7 @@ class OrderItemRepository
     {
         $model = OrderItem::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $model->restore();
+
         return $model;
     }
 }
