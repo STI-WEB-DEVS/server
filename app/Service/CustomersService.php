@@ -22,13 +22,26 @@ class CustomersService
 
     public function createCustomers(array $payload)
     {
-        if (!isset($payload['name']) || !isset($payload['email'])) {
-        throw new \Exception("Name and Email are required");
-    }
+        if (!isset($payload['name']) || !is_string($payload['name'])) {
+            throw new \Exception("Name is required and must be a string");
+        }
+    
+        if (!isset($payload['email'])) {
+            throw new \Exception("Email is required");
+        }
+    
+        if (strpos($payload['email'], '@') === false) {
+            throw new \Exception("Email must contain '@'");
+        }
+    
+        if (!filter_var($payload['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new \Exception("Invalid email format");
+        }
+    
+        $model = $this->customersRepository->create($payload);
+    
+        return new CustomersResource($model);
 
-    $model = $this->customersRepository->create($payload);
-
-    return new CustomersResource($model);
     }
 
     public function getCustomers(string $uuid)
