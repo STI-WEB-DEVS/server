@@ -19,6 +19,13 @@ class Order extends Model
         return ['uuid'];
     }
 
+    // Relationship to Customer
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    // Relationship to OrderItems
     public function items()
     {
         return $this->hasMany(OrderItem::class);
