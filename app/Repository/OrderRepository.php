@@ -41,18 +41,10 @@ class OrderRepository
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
-        return $model->delete();
+        return $model->delete(); // hard delete
     }
 
-    public function restore(string $uuid)
-    {
-        $model = Order::withTrashed()
-            ->where('uuid', $uuid)
-            ->firstOrFail();
-
-        $model->restore();
-        return $model;
-    }
+    // Removed restore() method completely
 
     public function findByCustomerId(int $customerId)
     {

@@ -37,13 +37,8 @@ class OrderItemRepository
     public function delete(int $id)
     {
         $model = $this->findById($id);
-        return $model->delete();
+        return $model->delete(); // hard delete
     }
 
-    public function restore(int $id)
-    {
-        $model = OrderItem::withTrashed()->findOrFail($id);
-        $model->restore();
-        return $model;
-    }
+    // Removed restore() method completely
 }
