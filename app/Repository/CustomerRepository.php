@@ -19,7 +19,9 @@ class CustomerRepository
 
     public function findByUuid(string $uuid)
     {
-        return Customer::where('uuid', $uuid)->firstOrFail();
+        return Customer::with(['orders.items.product'])
+            ->where('uuid', $uuid)
+            ->firstOrFail();
     }
 
     public function findByField(string $field, $value)
