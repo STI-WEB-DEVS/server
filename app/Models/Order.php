@@ -10,8 +10,8 @@ class Order extends Model
     use HasUuids;
 
     protected $fillable = [
-        'customer_id', 
-        'total_amount'
+        'customer_id',
+        'total_amount',
     ];
 
     public function uniqueIds(): array

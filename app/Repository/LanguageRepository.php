@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Models\Language;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class LanguageRepository
 {
@@ -31,12 +30,14 @@ class LanguageRepository
     {
         $model = $this->findByUuid($uuid);
         $model->update($payload);
+
         return $model;
     }
 
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
+
         return $model->delete();
     }
 
@@ -44,6 +45,7 @@ class LanguageRepository
     {
         $model = Language::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $model->restore();
+
         return $model;
     }
 }

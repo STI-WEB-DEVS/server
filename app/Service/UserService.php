@@ -35,7 +35,7 @@ class UserService
 
         return response()->json([
             'user' => new UserResource($user),
-            'token' => $token
+            'token' => $token,
         ], 200);
     }
 
