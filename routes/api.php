@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::apiResources([
-    'companies123' => CompanyController::class,
-    'companies456' => CompanyController::class,
+    'companies-listings' => CompanyController::class,
     'languages' => LanguageController::class,
     'products' => ProductController::class,
     'customers' => CustomerController::class,
