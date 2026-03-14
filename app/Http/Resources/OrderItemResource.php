@@ -10,7 +10,6 @@ class OrderItemResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'uuid'         => $this->uuid,
             'order_uuid'   => $this->order->uuid ?? null,
             'product_uuid' => $this->product->uuid ?? null,
             'product_name' => $this->product->name ?? null,

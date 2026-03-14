@@ -7,20 +7,23 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderRepository
 {
-        public function paginate(int $perPage = 15)
+    public function paginate(int $perPage = 15)
     {
-        return Order::with(['customer', 'items.product'])->latest()->paginate($perPage);
+        return Order::with(['customer', 'items.product'])
+            ->latest()
+            ->paginate($perPage);
     }
-
 
     public function create(array $payload)
     {
         return Order::create($payload);
     }
 
-        public function findByUuid(string $uuid)
+    public function findByUuid(string $uuid)
     {
-        return Order::with(['customer', 'items.product'])->where('uuid', $uuid)->firstOrFail();
+        return Order::with(['customer', 'items.product'])
+            ->where('uuid', $uuid)
+            ->firstOrFail();
     }
 
     public function findByField(string $field, $value)
@@ -43,7 +46,10 @@ class OrderRepository
 
     public function restore(string $uuid)
     {
-        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
+        $model = Order::withTrashed()
+            ->where('uuid', $uuid)
+            ->firstOrFail();
+
         $model->restore();
         return $model;
     }
