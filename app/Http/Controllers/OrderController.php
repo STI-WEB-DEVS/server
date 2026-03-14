@@ -45,4 +45,9 @@ class OrderController extends Controller
     {
         return $this->orderService->restoreOrder($uuid);
     }
+
+    public function customerOrders($uuid)
+{
+    return $this->orderService->getOrdersByCustomer($uuid);
+}
 }

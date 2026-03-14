@@ -22,8 +22,13 @@ class ProductsService
 
     public function createProducts(array $payload)
     {
-        $model = $this->productsRepository->create($payload);
-        return new ProductsResource($model);
+         if (!isset($payload['name']) || !isset($payload['price'])) {
+        throw new \Exception("Name and Price are required");
+    }
+
+    $model = $this->productsRepository->create($payload);
+
+    return new ProductsResource($model);
     }
 
     public function getProducts(string $uuid)

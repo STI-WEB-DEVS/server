@@ -4,14 +4,19 @@ namespace App\Service;
 
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
+use App\Models\Customer;
+use App\Models\Product;
+use App\Repository\OrderItemRepository;
 
 class OrderService
 {
     private OrderRepository $orderRepository;
+    private OrderItemRepository $orderItemRepository;
 
-    public function __construct(OrderRepository $orderRepository) 
+    public function __construct(OrderRepository $orderRepository, OrderItemRepository $orderItemRepository) 
     {
         $this->orderRepository = $orderRepository;
+        $this->orderItemRepository = $orderItemRepository;
     }
 
     public function listOrder(int $perPage = 15)
@@ -22,8 +27,36 @@ class OrderService
 
     public function createOrder(array $payload)
     {
-        $model = $this->orderRepository->create($payload);
-        return new OrderResource($model);
+        $customer = \App\Models\Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+
+    $totalAmount = 0;
+
+    $order = $this->orderRepository->create([
+        'customer_id' => $customer->id,
+        'total_amount' => 0
+    ]);
+
+    foreach ($payload['items'] as $item) {
+
+        $product = \App\Models\Product::where('uuid', $item['product_uuid'])->firstOrFail();
+
+        $lineTotal = $product->price * $item['quantity'];
+
+        $totalAmount += $lineTotal;
+
+        $this->orderItemRepository->create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => $item['quantity'],
+            'unit_price' => $product->price
+        ]);
+    }
+
+    $order->update([
+    'total_amount' => $totalAmount
+]);
+
+return new \App\Http\Resources\OrderResource($order->fresh());
     }
 
     public function getOrder(string $uuid)
@@ -55,4 +88,13 @@ class OrderService
         $model = $this->orderRepository->restore($uuid);
         return new OrderResource($model);
     }
+
+    public function getOrdersByCustomer(string $customerUuid)
+{
+    $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+
+    $orders = $this->orderRepository->getOrdersByCustomer($customer->id);
+
+    return OrderResource::collection($orders);
+}
 }

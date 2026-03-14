@@ -9,7 +9,9 @@ class OrderRepository
 {
     public function paginate(int $perPage = 15)
     {
-        return Order::latest()->paginate($perPage);
+        return Order::with(['customer','items.product'])
+        ->latest()
+        ->paginate($perPage);
     }
 
     public function create(array $payload)
@@ -19,7 +21,9 @@ class OrderRepository
 
     public function findByUuid(string $uuid)
     {
-        return Order::where('uuid', $uuid)->firstOrFail();
+          return Order::with(['customer','items.product'])
+        ->where('uuid', $uuid)
+        ->firstOrFail();
     }
 
     public function findByField(string $field, $value)
@@ -45,5 +49,10 @@ class OrderRepository
         $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $model->restore();
         return $model;
+    }
+
+    public function getOrdersByCustomer($customerId)
+    {
+        return Order::where('customer_id', $customerId)->get();
     }
 }

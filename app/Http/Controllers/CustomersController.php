@@ -22,7 +22,7 @@ class CustomersController extends Controller
 
     public function store(Request $request)
     {
-        return $this->customersService->createCustomers($request->all());
+ return $this->customersService->createCustomers($request->all());
     }
 
     public function show(string $uuid)

@@ -22,8 +22,13 @@ class CustomersService
 
     public function createCustomers(array $payload)
     {
-        $model = $this->customersRepository->create($payload);
-        return new CustomersResource($model);
+        if (!isset($payload['name']) || !isset($payload['email'])) {
+        throw new \Exception("Name and Email are required");
+    }
+
+    $model = $this->customersRepository->create($payload);
+
+    return new CustomersResource($model);
     }
 
     public function getCustomers(string $uuid)
