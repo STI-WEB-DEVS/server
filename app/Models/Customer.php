@@ -10,8 +10,8 @@ class Customer extends Model
     use HasUuids;
 
     protected $fillable = [
-        'name',
-        'email',
+        'name', 
+        'email'
     ];
 
     public function uniqueIds(): array

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Service\LanguageService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class LanguageController extends Controller
 {
@@ -37,10 +38,9 @@ class LanguageController extends Controller
     public function destroy(string $uuid)
     {
         $this->languageService->deleteLanguage($uuid);
-
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-
+    
     public function restore(string $uuid)
     {
         return $this->languageService->restoreLanguage($uuid);

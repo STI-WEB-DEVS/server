@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('products', function (Blueprint $table) {
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('price', 10, 2);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('orders', function (Blueprint $table) {
@@ -30,15 +32,18 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique();
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
-            $table->foreignId('product_id')->constrained('products');
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->integer('quantity');
             $table->decimal('unit_price', 10, 2);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

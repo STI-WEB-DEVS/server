@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CompanyStoreRequest;
 use App\Service\CompanyService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CompanyController extends Controller
 {
@@ -38,10 +39,9 @@ class CompanyController extends Controller
     public function destroy(string $uuid)
     {
         $this->companyService->deleteCompany($uuid);
-
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-
+    
     public function restore(string $uuid)
     {
         return $this->companyService->restoreCompany($uuid);

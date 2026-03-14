@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Language extends Model
 {
     use HasUuids;
-
+    
     public function uniqueIds(): array
     {
         return ['uuid'];

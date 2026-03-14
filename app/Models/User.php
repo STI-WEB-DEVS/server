@@ -10,7 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasUuids, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens, HasUuids;
 
     public function uniqueIds()
     {
@@ -22,7 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'uuid',
+        'uuid'
     ];
 
     protected $hidden = [

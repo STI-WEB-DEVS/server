@@ -2,29 +2,29 @@
 
 namespace App\Repository;
 
-use App\Models\Company;
+use App\Models\Customer;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class CompanyRepository
+class CustomersRepository
 {
     public function paginate(int $perPage = 15)
     {
-        return Company::latest()->paginate($perPage);
+        return Customer::latest()->paginate($perPage);
     }
 
     public function create(array $payload)
     {
-        return Company::create($payload);
+        return Customer::create($payload);
     }
 
     public function findByUuid(string $uuid)
     {
-        return Company::where('uuid', $uuid)->firstOrFail();
+        return Customer::where('uuid', $uuid)->firstOrFail();
     }
 
     public function findByField(string $field, $value)
     {
-        return Company::where($field, $value)->firstOrFail();
+        return Customer::where($field, $value)->firstOrFail();
     }
 
     public function update(string $uuid, array $payload)
@@ -42,7 +42,7 @@ class CompanyRepository
 
     public function restore(string $uuid)
     {
-        $model = Company::withTrashed()->where('uuid', $uuid)->firstOrFail();
+        $model = Customer::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $model->restore();
         return $model;
     }

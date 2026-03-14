@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::table('companies', function (Blueprint $table) {
             $table->enum('status', ['active', 'inactive'])
-                ->default('active')
-                ->after('name');
+                  ->default('active')
+                  ->after('name');
         });
     }
 
