@@ -1,19 +1,14 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repository;
 
 use App\Models\Company;
 
 class CompanyRepository
 {
-    public function all()
+    public function paginate(int $perPage = 15)
     {
-        return Company::all();
-    }
-
-    public function find($id)
-    {
-        return Company::find($id);
+        return Company::latest()->paginate($perPage);
     }
 
     public function create(array $payload)
@@ -21,21 +16,39 @@ class CompanyRepository
         return Company::create($payload);
     }
 
-    public function update($id, array $payload)
+    public function findByUuid(string $uuid)
     {
-        $company = Company::find($id);
-        if (!$company) return null;
+        return Company::where('uuid', $uuid)->firstOrFail();
+    }
 
+    public function findByField(string $field, $value)
+    {
+        return Company::where($field, $value)->firstOrFail();
+    }
+
+    public function update(string $uuid, array $payload)
+    {
+        $company = $this->findByUuid($uuid);
         $company->update($payload);
+
         return $company;
     }
 
-    public function delete($id)
+    public function delete(string $uuid)
     {
-        $company = Company::find($id);
-        if (!$company) return false;
+        $company = $this->findByUuid($uuid);
 
-        $company->delete();
-        return true;
+        return $company->delete();
+    }
+
+    public function restore(string $uuid)
+    {
+        $company = Company::withTrashed()
+            ->where('uuid', $uuid)
+            ->firstOrFail();
+
+        $company->restore();
+
+        return $company;
     }
 }

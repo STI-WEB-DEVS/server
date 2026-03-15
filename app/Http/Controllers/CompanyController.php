@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CompanyStoreRequest;
 use App\Service\CompanyService;
 use Illuminate\Http\Request;
 
 class CompanyController extends Controller
 {
-    private $companyService;
+    private CompanyService $companyService;
 
     public function __construct(CompanyService $companyService)
     {

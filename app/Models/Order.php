@@ -15,10 +15,6 @@ class Order extends Model
         'total_amount',
     ];
 
-    // protected $primaryKey = 'uuid';
-    // public $incrementing = false;
-    // protected $keyType = 'string';
-
     public function uniqueIds(): array
     {
         return ['uuid'];
@@ -39,11 +35,7 @@ class Order extends Model
         return $this->belongsTo(Customer::class, 'customer_id');
     }
 
-    // public function items()
-    // {
-    //     return $this->hasMany(OrderItem::class, 'order_id', 'uuid');
-    // }
-        public function items()
+    public function items()
     {
         return $this->hasMany(OrderItem::class, 'order_id', 'id');
     }
@@ -57,3 +49,4 @@ class Order extends Model
                     ->withTimestamps();
     }
 }
+

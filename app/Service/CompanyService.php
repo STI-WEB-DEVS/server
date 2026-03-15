@@ -2,20 +2,26 @@
 
 namespace App\Service;
 
-use App\Repositories\CompanyRepository;
-use Illuminate\Support\Str;
-
+use App\Http\Resources\CompanyResource;
+use App\Repository\CompanyRepository;
 
 class CompanyService
 {
-    private $repo;
+    private CompanyRepository $companyRepository;
 
-    public function __construct(CompanyRepository $repo)
+    public function __construct(CompanyRepository $companyRepository)
     {
-        $this->repo = $repo;
+        $this->companyRepository = $companyRepository;
     }
 
-    public function listCompanies()
+    public function listCompany(int $perPage = 15)
+    {
+        $collection = $this->companyRepository->paginate($perPage);
+
+        return CompanyResource::collection($collection);
+    }
+
+    public function createCompany(array $payload)
     {
         return $this->repo->all();
     }
@@ -51,3 +57,4 @@ class CompanyService
         return (string) Str::uuid();
     }
 }
+

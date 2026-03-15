@@ -3,26 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Company extends Model
+class Product extends Model
 {
-    use HasFactory, HasUuids;
+    use HasUuids;
 
-    
     protected $fillable = [
-        'uuid',
         'name',
+        'price',
     ];
 
     public function uniqueIds(): array
     {
         return ['uuid'];
-    }
-
-    public function users()
-    {
-        return $this->hasMany(User::class);
     }
 }
