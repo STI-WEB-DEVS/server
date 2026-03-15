@@ -12,7 +12,6 @@ class OrdersResource extends JsonResource
     {
         return [
             'uuid'       => $this->uuid,
-            'status'     => $this->status,
             'customer'   => [
                 'uuid'  => $this->customer->uuid ?? null,
                 'name'  => $this->customer->name ?? null,

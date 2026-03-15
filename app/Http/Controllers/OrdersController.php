@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OrdersResource;
+use App\Models\Order;
 use App\Service\OrdersService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+
+
 
 class OrdersController extends Controller
 {
@@ -31,6 +34,14 @@ class OrdersController extends Controller
     public function show(string $uuid)
     {
         return $this->ordersService->getOrders($uuid);
+    }
+    
+    public function byCustomer(Request $request, string $customerUuid)
+    {
+        return $this->ordersService->listOrdersByCustomerUuid(
+            $customerUuid,
+            $request->input('per_page', 15)
+        );
     }
 
     public function update(Request $request, string $uuid)

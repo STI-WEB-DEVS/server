@@ -23,6 +23,13 @@ class OrdersService
         $collection = $this->ordersRepository->paginate($perPage);
         return OrdersResource::collection($collection); 
     }
+    
+    public function listOrdersByCustomerUuid(string $customerUuid, int $perPage = 15)
+    {
+        $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+        $collection = $this->ordersRepository->paginateByCustomerId($customer->id, $perPage);
+        return OrdersResource::collection($collection);
+    }
 
     public function createOrders(array $payload)
     {
@@ -46,7 +53,7 @@ class OrdersService
             ]);
         }
     
-        return $order->load(['customer', 'items.product']);
+        return $order->load(['customer', 'orderItems.product']);
     }
     public function getOrders(string $uuid)
     {

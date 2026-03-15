@@ -14,26 +14,17 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/logout', [AuthController::class, 'logout']);
 
+    Route::get('/orders/customer/{customerUuid}', [OrdersController::class, 'byCustomer']);
+
     Route::apiResources([
         'companies' => CompanyController::class,
         'languages' => LanguageController::class,
         'products' => ProductsController::class,
         'customers' => CustomersController::class,
         'orders' => OrdersController::class,
-        'order-items', OrderItemsController::class
-
+        'order-items' => OrderItemsController::class,
 
     ]);
-});
-
-
-
-Route::prefix('companies')->group(function () {
-    Route::get('/', [CompanyController::class, 'index']);       // List all companies
-    Route::post('/', [CompanyController::class, 'store']);      // Create new company
-    Route::get('/{id}', [CompanyController::class, 'show']);    // Get single company
-    Route::put('/{id}', [CompanyController::class, 'update']);  // Update company
-    Route::delete('/{id}', [CompanyController::class, 'destroy']); // Delete company
 });
 
 

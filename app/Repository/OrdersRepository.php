@@ -9,9 +9,16 @@ class OrdersRepository
 {
     public function paginate(int $perPage = 15)
     {
-        return Order::latest()->paginate($perPage);
-        // return Order::with(['customer', 'orderItems.product'])
-        // ->paginate($perPage);
+        // return Order::latest()->paginate($perPage);
+        return Order::with(['customer', 'orderItems.product'])
+        ->paginate($perPage);
+    }
+    
+    public function paginateByCustomerId(int $customerId, int $perPage = 15)
+    {
+        return Order::with(['customer', 'orderItems.product'])
+            ->where('customer_id', $customerId)
+            ->paginate($perPage);
     }
 
     public function create(array $payload)

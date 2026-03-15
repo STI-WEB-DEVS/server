@@ -35,7 +35,8 @@ class Order extends Model
         return $this->belongsTo(Customer::class, 'customer_id');
     }
 
-    public function items()
+    
+    public function orderItems()
     {
         return $this->hasMany(OrderItem::class, 'order_id', 'id');
     }

@@ -23,11 +23,6 @@ class CompanyService
 
     public function createCompany(array $payload)
     {
-        return $this->repo->all();
-    }
-
-    public function createCompany(array $payload)
-    {
         // Automatically generate UUID
         $payload['uuid'] = $this->generateUuid();
 
