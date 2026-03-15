@@ -27,8 +27,28 @@ class OrdersService
     public function listOrdersByCustomerUuid(string $customerUuid, int $perPage = 15)
     {
         $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+
         $collection = $this->ordersRepository->paginateByCustomerId($customer->id, $perPage);
-        return OrdersResource::collection($collection);
+        // return OrdersResource::collection($collection);
+
+        return [
+            'orders' => $collection->total(), 
+            'data' => OrdersResource::collection($collection),
+            'links' => [
+                'first' => $collection->url(1),
+                'last' => $collection->url($collection->lastPage()),
+                'prev' => $collection->previousPageUrl(),
+                'next' => $collection->nextPageUrl(),
+            ],
+            'meta' => [
+                'current_page' => $collection->currentPage(),
+                'from' => $collection->firstItem(),
+                'last_page' => $collection->lastPage(),
+                'to' => $collection->lastItem(),
+                'per_page' => $collection->perPage(),
+                'total' => $collection->total(),
+            ]
+        ];
     }
 
     public function createOrders(array $payload)
