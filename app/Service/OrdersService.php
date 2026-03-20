@@ -53,18 +53,24 @@ class OrdersService
 
     public function createOrders(array $payload)
     {
+        $data = collect($payload);
+
+        if (! $data->has('customer_uuid') || ! $data->has('items')) {
+            return response()->json(['message' => 'customer_uuid and items are required'], 422);
+        }
+
         // Find customer by UUID, but use numeric ID for DB
-        $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
-    
+        $customer = Customer::where('uuid', $data['customer_uuid'])->firstOrFail();
+
         // Create order linked to customer (using numeric ID)
         $order = Order::create([
             'customer_id' => $customer->id,
         ]);
-    
+
         // Attach products by resolving UUIDs to IDs
-        foreach ($payload['items'] as $item) {
+        foreach ($data['items'] as $item) {
             $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
-    
+
             OrderItem::create([
                 'order_id'   => $order->id,        // ✅ numeric ID
                 'product_id' => $product->id,      // ✅ numeric ID
@@ -72,9 +78,10 @@ class OrdersService
                 'unit_price' => $product->price,
             ]);
         }
-    
+
         return $order->load(['customer', 'orderItems.product']);
     }
+    
     public function getOrders(string $uuid)
     {
         $model = $this->ordersRepository->findByUuid($uuid);
