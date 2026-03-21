@@ -19,6 +19,5 @@ orders
 # Commands
 git clone -b Oracion_Jericca https://github.com/STI-WEB-DEVS/server.git
 cp .env.example .env
-php artisan generate:key
 php artisan key:generate
-php artisan db:seed
+php artisan migrate:fresh --seed
