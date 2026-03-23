@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\OrderStoreRequest;
+use App\Http\Requests\OrderUpdateRequest;
 use App\Service\OrderService;
 use Illuminate\Http\Request;
 
@@ -39,5 +40,10 @@ class OrderController extends Controller
     public function listByCustomer(string $customerUuid)
     {
         return $this->orderService->listOrdersByCustomer($customerUuid, 15);
+    }
+
+    public function update(OrderUpdateRequest $request, string $uuid)
+    {
+        return $this->orderService->updateOrder($uuid, $request->validated());
     }
 }
