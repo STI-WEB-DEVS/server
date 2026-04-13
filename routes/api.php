@@ -29,7 +29,7 @@ Route::get('/test', function (Request $request) {
 });
 
     Route::get('/customers/{uuid}/orders', [OrderController::class, 'customerOrders']);
-Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/logout', [AuthController::class, 'logout']);
 
 });
