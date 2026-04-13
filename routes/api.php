@@ -25,3 +25,7 @@ Route::get('customers/{uuid}/orders', [CustomerController::class, 'orders'])
 // ── Orders ────────────────────────────────────────────
 Route::apiResource('orders', OrderController::class);
 Route::post('orders/{uuid}/restore', [OrderController::class, 'restore']);
+
+Route::middleware('auth:sanctum')->get('/customers', function () {
+    return DB::table('customers')->get();
+});
