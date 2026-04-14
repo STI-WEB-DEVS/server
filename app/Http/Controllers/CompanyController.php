@@ -2,48 +2,67 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CompanyStoreRequest;
-use App\Service\CompanyService;
+use App\Http\Requests\CustomerStoreRequest;
+use App\Service\CustomerService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
-class CompanyController extends Controller
+class CustomerController extends Controller
 {
-    private CompanyService $companyService;
+    private CustomerService $customerService;
 
-    public function __construct(CompanyService $companyService)
+    public function __construct(CustomerService $customerService)
     {
-        $this->companyService = $companyService;
+        $this->customerService = $customerService;
     }
 
+    /**
+     * Display a listing of the customers.
+     */
     public function index(Request $request)
     {
-        return $this->companyService->listCompany($request->input('per_page', 15));
+        return $this->customerService->listCustomer($request->input('per_page', 15));
     }
 
-    public function store(CompanyStoreRequest $request)
+    /**
+     * Store a newly created customer in storage.
+     */
+    public function store(CustomerStoreRequest $request)
     {
-        return $this->companyService->createCompany($request->all());
+        return $this->customerService->createCustomer($request->all());
     }
 
+    /**
+     * Display the specified customer.
+     */
     public function show(string $uuid)
     {
-        return $this->companyService->getCompany($uuid);
+        return $this->customerService->getCustomer($uuid);
     }
 
+    /**
+     * Update the specified customer in storage.
+     */
     public function update(Request $request, string $uuid)
     {
-        return $this->companyService->updateCompany($uuid, $request->all());
+        return $this->customerService->updateCustomer($uuid, $request->all());
     }
 
-    public function destroy(string $uuid)
+    /**
+     * Remove the specified customer from storage.
+     */
+    public function destroy(string $uuid): JsonResponse
     {
-        $this->companyService->deleteCompany($uuid);
+        $this->customerService->deleteCustomer($uuid);
 
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
 
+    /**
+     * Restore a soft-deleted customer.
+     */
     public function restore(string $uuid)
     {
-        return $this->companyService->restoreCompany($uuid);
+        return $this->customerService->restoreCustomer($uuid);
     }
 }
