@@ -7,25 +7,17 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-class DatabaseSeeder extends Seeder
+class MaintenanceAdminSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'test@sti.com'],
+            ['email' => 'maintenance.admin@sti.com'],
             [
                 'uuid' => (string) Str::uuid(),
-                'name' => 'Test User',
+                'name' => 'Maintenance Admin',
                 'password' => Hash::make('password'),
             ]
         );
-
-        $this->call([
-            CustomerSeeder::class,
-            MaintenanceAdminSeeder::class,
-        ]);
     }
 }

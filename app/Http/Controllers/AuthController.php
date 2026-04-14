@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserStoreRequest;
 use App\Service\UserService;
 use Illuminate\Http\Request;
 
@@ -17,6 +18,11 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         return $this->userService->loginUser($request);
+    }
+
+    public function register(UserStoreRequest $request)
+    {
+        return $this->userService->registerUser($request->validated());
     }
 
     public function logout(Request $request)

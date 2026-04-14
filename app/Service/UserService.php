@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Http\Resources\UserResource;
 use App\Repository\UserRepository;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserService
 {
@@ -37,6 +38,24 @@ class UserService
             'user' => new UserResource($user),
             'token' => $token,
         ], 200);
+    }
+
+    public function registerUser(array $payload)
+    {
+        $user = $this->userRepository->create([
+            'uuid' => (string) Str::uuid(),
+            'name' => $payload['name'],
+            'email' => $payload['email'],
+            'password' => Hash::make($payload['password']),
+        ]);
+
+        $token = $user->createToken($user->email)->plainTextToken;
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => new UserResource($user),
+            'token' => $token,
+        ], 201);
     }
 
     public function logoutUser(object $user)
