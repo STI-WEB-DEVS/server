@@ -19,10 +19,17 @@ class CompanyStoreRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
-    {
+    public function rules(): array {
+
         return [
-            'name' => ['required', 'string'],
+    
+          'name' => ['required', 'string', 'max:255'],
+    
+          'email' => ['required', 'email', 'unique:companies'],
+    
+          'tax_id' => ['nullable', 'string', Rule::unique('companies')],
+    
         ];
-    }
+    
+      }
 }
