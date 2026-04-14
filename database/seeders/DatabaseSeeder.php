@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,11 +14,27 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'uuid' => (string) Str::uuid(),
-            'name' => 'Test User',
-            'email' => 'test@sti.com',
-            'password' => Hash::make('password'),
+        $this->call([
+            MaintenanceAdminSeeder::class,
+            CustomerSeeder::class,
         ]);
+
+        $users = [
+            [
+                'name' => 'Test User',
+                'email' => 'test@sti.com',
+                'password' => 'test123',
+            ],
+        ];
+
+        foreach ($users as $userData) {
+            User::updateOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name' => $userData['name'],
+                    'password' => $userData['password'],
+                ]
+            );
+        }
     }
 }
