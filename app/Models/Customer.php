@@ -10,6 +10,7 @@ class Customer extends Model
     use HasUuids;
 
     protected $fillable = [
+        'uuid',
         'name',
         'email',
     ];
