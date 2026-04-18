@@ -1,0 +1,5 @@
+$kind: http-request
+name: GetAllCustomers
+url: ""
+method: GET
+order: 4045546239273794

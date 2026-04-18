@@ -1,4 +1,4 @@
 $kind: collection
-name: New Collection
+name: Customer REST API
 variables:
   token: ""

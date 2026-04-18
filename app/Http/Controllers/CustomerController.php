@@ -57,6 +57,6 @@ class CustomerController extends Controller
     {
         //
 
-        return $this->customerService->deletCustomer($id);
+        return $this->customerService->deleteCustomer($id);
     }
 }

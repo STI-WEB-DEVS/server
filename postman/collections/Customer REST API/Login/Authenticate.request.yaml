@@ -1,5 +1,5 @@
 $kind: http-request
-name: New Request
+name: Authenticate
 url: http://localhost:8000/api/login
 method: POST
 body:
