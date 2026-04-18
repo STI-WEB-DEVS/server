@@ -9,6 +9,7 @@ class LanguageController extends Controller
 {
     private LanguageService $languageService;
 
+
     public function __construct(LanguageService $languageService)
     {
         $this->languageService = $languageService;
