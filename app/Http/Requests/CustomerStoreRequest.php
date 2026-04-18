@@ -21,6 +21,8 @@ class CustomerStoreRequest extends FormRequest
                 'regex:/^[a-zA-Z]+$/',
             ],
             'email' => ['required', 'email', 'unique:customers,email'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:500'],
         ];
     }
 

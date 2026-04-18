@@ -11,8 +11,15 @@ class Customer extends Model
 
     protected $fillable = [
         'name', 
-        'email'
+        'email',
+        'phone',
+        'address'
     ];
+
+    public function getRouteKeyName()
+    {
+        return 'uuid';
+    }
 
     public function uniqueIds(): array
     {

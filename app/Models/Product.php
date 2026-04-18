@@ -11,8 +11,14 @@ class Product extends Model
 
     protected $fillable = [
         'name', 
-        'price'
+        'price',
+        'description'
     ];
+
+    public function getRouteKeyName()
+    {
+        return 'uuid';
+    }
 
     public function uniqueIds(): array
     {
