@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::delete('/logout', [AuthController::class, 'logout']);
+    // Route::delete('/logout', [AuthController::class, 'logout']);
 
     Route::apiResources([
-        'companies' => CompanyController::class,
-        'languages' => LanguageController::class,
+        'customer' => CustomerController::class
     ]);
 });
+<<<<<<< HEAD
 
 Route::apiResource('customers', CustomerController::class);
 
@@ -35,3 +35,5 @@ Route::get('/student-profile', function () {
         "is_active" => true
     ], 200, [], JSON_PRETTY_PRINT);
 });
+=======
+>>>>>>> 719b480669c1af01f0bbc69fd037eb8590741e5f
