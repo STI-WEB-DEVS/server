@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
-    use HasUuids;
+    use HasFactory;
 
     protected $fillable = [
-        'name',
-        'email',
+        'name', 
+        'email', 
+        'contact_number', 
+        'address'
     ];
-
     public function uniqueIds(): array
     {
         return ['uuid'];

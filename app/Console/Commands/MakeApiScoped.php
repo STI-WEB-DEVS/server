@@ -28,7 +28,7 @@ class MakeApiScoped extends Command
 
     namespace App\Http\Controllers;
 
-    use App\Service\DummyService;
+    use App\Services\DummyService;
     use Illuminate\Http\Request;
     use Illuminate\Http\JsonResponse;
 
@@ -84,7 +84,7 @@ class MakeApiScoped extends Command
     protected const SERVICE_STUB = <<<'STUB'
     <?php
     
-    namespace App\Service;
+    namespace App\Services;
     
     use App\Repository\DummyRepository;
     use App\Http\Resources\DummyResource;
