@@ -6,39 +6,30 @@ use App\Repository\CustomerRepository;
 
 class CustomerService
 {
-    public function create(array $data) {
+    protected $customerRepository;
 
-        // validate, transform, then:
-    
-        return $this->repo->create($data);
+    public function __construct(CustomerRepository $customerRepository)
+    {
+        $this->customerRepository = $customerRepository;
     }
 
-    public function __construct(
-        protected CustomerRepository $repository
-    ) {}
-
-    public function getAllCustomers()
-    {
-        return $this->repository->all();
+    public function getAllCustomers() {
+        return $this->customerRepository->getAll();
     }
 
-    public function createCustomer(array $data)
-    {
-        return $this->repository->create($data);
+    public function getCustomer($id) {
+        return $this->customerRepository->findById($id);
     }
 
-    public function getCustomerById(string $id)
-    {
-        return $this->repository->find($id);
+    public function createCustomer(array $data) {
+        return $this->customerRepository->create($data);
     }
 
-    public function updateCustomer(string $id, array $data)
-    {
+    public function updateCustomer($id, array $data) {
         return $this->customerRepository->update($id, $data);
     }
 
-    public function deleteCustomer(string $id)
-    {
-        return $this->repository->delete($id);
+    public function deleteCustomer($id) {
+        return $this->customerRepository->delete($id);
     }
 }

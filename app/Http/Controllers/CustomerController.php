@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Service\CustomerService;
-use App\Service\CustomerRepository;
+use App\Repository\CustomerRepository;
 use App\Http\Requests\CustomerStoreRequest;
 use App\Http\Resources\CustomerResource;
+use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    private CustomerService $customerService;
+    public CustomerService $customerService;
 
 
    public function __construct(CustomerService $customerService)
@@ -32,11 +32,11 @@ class CustomerController extends Controller
 
     public function show(string $id)
     {
-        $customer = $this->customerService->getCustomerById($id);
+        $customer = $this->customerService->getCustomer($id);
         return new CustomerResource($customer);
     }
 
-    public function update(Request $request, string $id)
+    public function update(CustomerStoreRequest $request, string $id)
     {
         $customer = $this->customerService->updateCustomer($id, $request->validated());
         return new CustomerResource($customer);

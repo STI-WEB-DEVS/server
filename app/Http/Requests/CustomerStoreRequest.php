@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class CustomerStoreRequest extends FormRequest
 {
@@ -23,8 +22,8 @@ class CustomerStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:customers,email'],
+            'name' => ['required', 'string'],
+            'email' => ['required', 'email'],
         ];
     }
 }

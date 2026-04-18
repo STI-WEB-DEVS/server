@@ -6,34 +6,29 @@ use App\Models\Customer;
 
 class CustomerRepository
 {
+    public function getAll() {
+        return Customer::latest()->paginate(5);
+    }
+
+    public function findById($uuid) {
+       
+        return Customer::where('uuid', $uuid)->firstOrFail();
+    }
 
     public function create(array $data) {
-
         return Customer::create($data);
-    
-      }
-    
-
-    public function find(string $id)
-    {
-        return Customer::findOrFail($id); 
     }
 
-    public function all()
-    {
-        return Customer::all();
-    }
-
-    public function update(string $id, array $data)
-    {
-        $customer = Customer::findOrFail($id);
+    public function update($uuid, array $data) {
+        
+        $customer = Customer::where('uuid', $uuid)->firstOrFail();
         $customer->update($data);
         return $customer;
     }
 
-    public function delete(string $id)
-    {
-        $customer = $this->find($id);
+    public function delete($uuid) {
+      
+        $customer = Customer::where('uuid', $uuid)->firstOrFail();
         return $customer->delete();
     }
 }
