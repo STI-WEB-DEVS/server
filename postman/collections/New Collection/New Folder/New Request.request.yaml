@@ -1,0 +1,25 @@
+$kind: http-request
+name: New Request
+url: http://localhost:8000/api/login
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"password\": \"password\",\r
+
+    \    \"email\": \"test@sti.com\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: pm.collectionVariables.set("token",pm.response.json().token);
+    language: text/javascript
+settings:
+  disabledSystemHeaders:
+    - host
+    - user-agent
+    - content-length
+    - accept-encoding
+    - connection
+order: 1776477936444

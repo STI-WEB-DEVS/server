@@ -1,0 +1,15 @@
+$kind: http-request
+name: New Request
+url: http://localhost:8000/api/customers
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+settings:
+  disabledSystemHeaders:
+    - host
+    - user-agent
+    - accept-encoding
+    - connection
+order: 1000

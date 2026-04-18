@@ -1,0 +1,12 @@
+$kind: http-request
+name: UpdateCustomer
+url: http://127.0.0.1:8000/api/customers/
+method: GET
+headers:
+  Accept: application/json
+  Content-Type: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+order: 3000
