@@ -8,24 +8,28 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 
+// Authentication
 Route::post('/login', [AuthController::class, 'login']);
 
-// ── Products ──────────────────────────────────────────
-Route::apiResource('products', ProductController::class);
-Route::post('products/{uuid}/restore', [ProductController::class, 'restore']);
+// Grouping routes for cleanliness
+Route::middleware('auth:sanctum')->group(function () {
+    
+    // ── Products ──────────────────────────────────────────
+    Route::apiResource('products', ProductController::class);
+    Route::post('products/{uuid}/restore', [ProductController::class, 'restore']);
 
-// ── Customers ─────────────────────────────────────────
-Route::apiResource('customers', CustomerController::class);
-Route::post('customers/{uuid}/restore', [CustomerController::class, 'restore']);
+    // ── Customers ─────────────────────────────────────────
+    Route::apiResource('customers', CustomerController::class);
+    Route::post('customers/{uuid}/restore', [CustomerController::class, 'restore']);
+    
+    // Output #3 — Order list per customer
+    Route::get('customers/{uuid}/orders', [CustomerController::class, 'orders'])
+         ->name('customers.orders');
 
-// Output #3 — Order list per customer
-Route::get('customers/{uuid}/orders', [CustomerController::class, 'orders'])
-     ->name('customers.orders');
+    // ── Orders ────────────────────────────────────────────
+    Route::apiResource('orders', OrderController::class);
+    Route::post('orders/{uuid}/restore', [OrderController::class, 'restore']);
 
-// ── Orders ────────────────────────────────────────────
-Route::apiResource('orders', OrderController::class);
-Route::post('orders/{uuid}/restore', [OrderController::class, 'restore']);
-
-Route::middleware('auth:sanctum')->get('/customers', function () {
-    return DB::table('customers')->get();
 });
+
+// REMOVED: The conflicting Route::get('/customers') closure that was causing the data mismatch.

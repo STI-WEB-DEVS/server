@@ -16,7 +16,10 @@ class CustomerService
 
     public function listCustomer(int $perPage = 15)
     {
+        // This returns a LengthAwarePaginator
         $collection = $this->customerRepository->paginate($perPage);
+        
+        // This wraps the array in "data" and adds "meta" automatically
         return CustomerResource::collection($collection);
     }
 
@@ -32,12 +35,6 @@ class CustomerService
         return new CustomerResource($model);
     }
 
-    public function getCustomerByField(string $field, $value)
-    {
-        $model = $this->customerRepository->findByField($field, $value);
-        return new CustomerResource($model);
-    }
-
     public function updateCustomer(string $uuid, array $payload)
     {
         $model = $this->customerRepository->update($uuid, $payload);
@@ -46,8 +43,7 @@ class CustomerService
 
     public function deleteCustomer(string $uuid)
     {
-        $this->customerRepository->delete($uuid);
-        return true;
+        return $this->customerRepository->delete($uuid);
     }
 
     public function restoreCustomer(string $uuid)
@@ -56,9 +52,6 @@ class CustomerService
         return new CustomerResource($model);
     }
 
-    /**
-     * Output #3 — Customer with all their orders
-     */
     public function getCustomerWithOrders(string $uuid): CustomerResource
     {
         $model = $this->customerRepository->getWithOrders($uuid);
