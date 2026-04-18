@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->create([
             'uuid' => (string) Str::uuid(),
-            'name' => 'Test User',
+            'name' => 'Gio Matindo',
             'email' => 'test@sti.com',
             'password' => Hash::make('password'),
         ]);
