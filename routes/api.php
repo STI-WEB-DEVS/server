@@ -9,6 +9,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\JsonResponse;
+
 
 Route::post('/login', [AuthController::class, 'login']);
 
