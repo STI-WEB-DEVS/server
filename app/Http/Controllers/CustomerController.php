@@ -5,12 +5,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
+use Illuminate\Support\Str;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Customer::all();
+        $customers = Customer::paginate($request->input('per_page', 10));
+        return response()->json([
+            'data' => $customers->items(),
+            'meta' => [
+                'total' => $customers->total(),
+                'from' => $customers->firstItem() ?? 0,
+                'to' => $customers->lastItem() ?? 0,
+                'per_page' => $customers->perPage(),
+                'current_page' => $customers->currentPage(),
+                'last_page' => $customers->lastPage(),
+            ]
+        ]);
     }
 
     public function store(Request $request)
@@ -21,7 +33,7 @@ class CustomerController extends Controller
         ]);
 
         return Customer::create([
-            'uuid' => Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'name' => $request->name,
             'email' => $request->email,
         ]);
@@ -34,6 +46,11 @@ class CustomerController extends Controller
 
     public function update(Request $request, Customer $customer)
     {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email',
+        ]);
+
         $customer->update($request->only('name', 'email'));
         return $customer;
     }

@@ -20,6 +20,11 @@ class Customer extends Model
         return ['uuid'];
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class);

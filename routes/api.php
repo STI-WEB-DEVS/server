@@ -18,6 +18,7 @@ Route::middleware('auth:sanctum')->group(function () {
 <<<<<<< HEAD
 
 Route::apiResource('customers', CustomerController::class);
+Route::apiResource('products', \App\Http\Controllers\ProductController::class);
 
 Route::get('/student-profile', function () {
     return response()->json([
