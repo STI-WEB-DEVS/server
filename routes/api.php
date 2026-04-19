@@ -23,4 +23,9 @@ Route::get('/customers/orders/{customerUuid}', [OrderController::class, 'listByC
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/logout', [AuthController::class, 'logout']);
+
+    Route::apiResources([
+        'companies' => CompanyController::class,
+        'languages' => LanguageController::class,
+    ]);
 });
