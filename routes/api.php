@@ -13,6 +13,8 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Grouping routes for cleanliness
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/logout', [AuthController::class, 'logout']);
     
     // ── Products ──────────────────────────────────────────
     Route::apiResource('products', ProductController::class);
