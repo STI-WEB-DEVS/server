@@ -5,17 +5,25 @@ namespace App\Service;
 // use App\Http\Resources\LanguageResource;
 // use App\Repository\LanguageRepository;
 
+use App\Models\Customer;
+
 class CustomerService
 {
-    // private LanguageRepository $languageRepository;
-
-    // public function __construct(LanguageRepository $languageRepository)
-    // {
-    //     $this->languageRepository = $languageRepository;
-    // }
-
     public function getCustomers()
     {
-        return "List of Service";
+        $customers = Customer::paginate(request()->input('per_page', 10));
+
+        return response()->json([
+            'data' => $customers->items(),
+            'meta' => [
+                'total' => $customers->total(),
+                'from' => $customers->firstItem() ?? 0,
+                'to' => $customers->lastItem() ?? 0,
+                'per_page' => $customers->perPage(),
+                'current_page' => $customers->currentPage(),
+                'last_page' => $customers->lastPage(),
+            ]
+        ]);
     }
 }
+
