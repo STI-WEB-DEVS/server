@@ -2,40 +2,50 @@
 
 namespace App\Services;
 
-use App\Repositories\CustomerRepository; // Make sure this matches!
+use App\Http\Resources\CustomerResource;
+use App\Repository\CustomerRepository;
 
 class CustomerService
-
 {
-    protected $customerRepository;
+    private CustomerRepository $customerRepository;
 
     public function __construct(CustomerRepository $customerRepository)
     {
         $this->customerRepository = $customerRepository;
     }
 
-    public function getAllCustomers()
+    public function listCustomer(int $perPage = 15)
     {
-        return $this->customerRepository->getAll();
+        $collection = $this->customerRepository->paginate($perPage);
+
+        return CustomerResource::collection($collection);
     }
 
-    public function getCustomerById($id)
+    public function createCustomer(array $payload)
     {
-        return $this->customerRepository->findById($id);
+        $model = $this->customerRepository->create($payload);
+
+        return new CustomerResource($model);
     }
 
-    public function createCustomer(array $data)
+    public function getCustomer(string $uuid)
     {
-        return $this->customerRepository->create($data);
+        $model = $this->customerRepository->findByUuid($uuid);
+
+        return new CustomerResource($model);
     }
 
-    public function updateCustomer($id, array $data)
+    public function updateCustomer(string $uuid, array $payload)
     {
-        return $this->customerRepository->update($id, $data);
+        $model = $this->customerRepository->update($uuid, $payload);
+
+        return new CustomerResource($model);
     }
 
-    public function deleteCustomer($id)
+    public function deleteCustomer(string $uuid)
     {
-        return $this->customerRepository->delete($id);
+        $this->customerRepository->delete($uuid);
+
+        return true;
     }
 }

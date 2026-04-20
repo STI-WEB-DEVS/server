@@ -1,37 +1,38 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repository;
 
 use App\Models\Customer;
 
 class CustomerRepository
-
 {
-    public function getAll()
+    public function paginate(int $perPage = 15)
     {
-        return Customer::all();
+        return Customer::latest()->paginate($perPage);
     }
 
-    public function findById($id)
+    public function create(array $payload)
     {
-        return Customer::findOrFail($id);
+        return Customer::create($payload);
     }
 
-    public function create(array $data)
+    public function findByUuid(string $uuid)
     {
-        return Customer::create($data);
+        return Customer::where('uuid', $uuid)->firstOrFail();
     }
 
-    public function update($id, array $data)
+    public function update(string $uuid, array $payload)
     {
-        $customer = $this->findById($id);
-        $customer->update($data);
-        return $customer;
+        $model = $this->findByUuid($uuid);
+        $model->update($payload);
+
+        return $model;
     }
 
-    public function delete($id)
+    public function delete(string $uuid)
     {
-        $customer = $this->findById($id);
-        return $customer->delete();
+        $model = $this->findByUuid($uuid);
+
+        return $model->delete();
     }
 }

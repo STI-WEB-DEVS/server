@@ -2,52 +2,43 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CustomerService;
 use App\Http\Requests\CustomerStoreRequest;
-use App\Http\Resources\CustomerResource;
+use App\Services\CustomerService;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    protected $customerService;
+    private CustomerService $customerService;
 
     public function __construct(CustomerService $customerService)
     {
-       $this->customerService = $customerService;
+        $this->customerService = $customerService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $customers = $this->customerService->getAllCustomers();
-        // Return a collection of resources
-        return CustomerResource::collection($customers);
-        
+        return $this->customerService->listCustomer($request->input('per_page', 15));
     }
 
     public function store(CustomerStoreRequest $request)
     {
-        $customer = $this->customerService->createCustomer($request->validated());
-        // Return the single newly created resource
-        return new CustomerResource($customer);
+        return $this->customerService->createCustomer($request->validated());
     }
 
-    public function show($id)
+    public function show(string $uuid)
     {
-        $customer = $this->customerService->getCustomerById($id);
-        return new CustomerResource($customer);
+        return $this->customerService->getCustomer($uuid);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, string $uuid)
     {
-        $customer = $this->customerService->updateCustomer($id, $request->all());
-        return new CustomerResource($customer);
+        return $this->customerService->updateCustomer($uuid, $request->all());
     }
-    
 
-    public function destroy($id)
+    public function destroy(string $uuid)
     {
-        $this->customerService->deleteCustomer($id);
-        return response()->json(['message' => 'Customer deleted successfully']);
+        $this->customerService->deleteCustomer($uuid);
+
+        return response()->json(['message' => 'Customer deleted successfully'], 200);
     }
-    
 }
