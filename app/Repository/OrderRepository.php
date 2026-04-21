@@ -9,41 +9,46 @@ class OrderRepository
 {
     public function paginate(int $perPage = 15)
     {
-        return Order::latest()->paginate($perPage);
+        return Order::paginate($perPage);
     }
 
-    public function create(array $payload)
+    public function findById(int $id): ?Order
     {
-        return Order::create($payload);
+        return Order::find($id);
     }
 
-    public function findByUuid(string $uuid)
+    public function findByUuid(string $uuid): ?Order
     {
-        return Order::where('uuid', $uuid)->firstOrFail();
+        return Order::where('uuid', $uuid)->first();
     }
 
-    public function findByField(string $field, $value)
+    public function findByField(string $field, $value): ?Order
     {
-        return Order::where($field, $value)->firstOrFail();
+        return Order::where($field, $value)->first();
     }
 
-    public function update(string $uuid, array $payload)
+    public function create(array $data): Order
     {
-        $model = $this->findByUuid($uuid);
-        $model->update($payload);
-        return $model;
+        return Order::create($data);
     }
 
-    public function delete(string $uuid)
+    public function update(string $uuid, array $data): Order
     {
-        $model = $this->findByUuid($uuid);
-        return $model->delete();
+        $order = $this->findByUuid($uuid);
+        $order->update($data);
+        return $order;
     }
 
-    public function restore(string $uuid)
+    public function delete(string $uuid): bool
     {
-        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
-        $model->restore();
-        return $model;
+        $order = $this->findByUuid($uuid);
+        return $order->delete();
+    }
+
+    public function restore(string $uuid): ?Order
+    {
+        $order = Order::withTrashed()->where('uuid', $uuid)->first();
+        $order->restore();
+        return $order;
     }
 }

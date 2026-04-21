@@ -7,43 +7,18 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderItemRepository
 {
-    public function paginate(int $perPage = 15)
+    public function create(array $data): OrderItem
     {
-        return OrderItem::latest()->paginate($perPage);
+        return OrderItem::create($data);
     }
 
-    public function create(array $payload)
+    public function findByOrderId(int $orderId)
     {
-        return OrderItem::create($payload);
+        return OrderItem::where('order_id', $orderId)->get();
     }
 
-    public function findByUuid(string $uuid)
+    public function deleteByOrderId(int $orderId): bool
     {
-        return OrderItem::where('uuid', $uuid)->first();
-    }
-
-    public function findByField(string $field, $value)
-    {
-        return OrderItem::where($field, $value)->first();
-    }
-
-    public function update(string $uuid, array $payload)
-    {
-        $model = $this->findByUuid($uuid);
-        $model->update($payload);
-        return $model;
-    }
-
-    public function delete(string $uuid)
-    {
-        $model = $this->findByUuid($uuid);
-        return $model->delete();
-    }
-
-    public function restore(string $uuid)
-    {
-        $model = OrderItem::withTrashed()->where('uuid', $uuid)->first();
-        $model->restore();
-        return $model;
+        return OrderItem::where('order_id', $orderId)->delete();
     }
 }

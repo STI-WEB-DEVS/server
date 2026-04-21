@@ -21,6 +21,11 @@ class ProductRepository
     {
         return Product::where('uuid', $uuid)->firstOrFail();
     }
+    
+    public function findById(string $id)
+    {
+        return Product::where('id', $id)->first();
+    }
 
     public function findByField(string $field, $value)
     {

@@ -21,6 +21,11 @@ class CustomerRepository
         return Customer::where('uuid', $uuid)->first();
     }
 
+    public function findById(string $id)
+    {
+        return Customer::where('id', $id)->first();
+    }
+
     public function findByField(string $field, $value)
     {
         return Customer::where($field, $value)->first();

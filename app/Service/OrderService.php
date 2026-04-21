@@ -4,17 +4,28 @@ namespace App\Service;
 
 use App\Repository\OrderRepository;
 use App\Repository\OrderItemRepository;
+use App\Repository\ProductRepository;
+use App\Repository\CustomerRepository;
 use App\Http\Resources\OrderResource;
 
 class OrderService
 {
     private OrderRepository $orderRepository;
-
     private OrderItemRepository $orderItemRepository;
+    private ProductRepository $productRepository;
+    private CustomerRepository $customerRepository;
 
-    public function __construct(OrderRepository $orderRepository) 
+    public function __construct(
+        OrderRepository $orderRepository, 
+        OrderItemRepository $orderItemRepository, 
+        ProductRepository $productRepository,
+        CustomerRepository $customerRepository
+        ) 
     {
-        $this->orderRepository = $orderRepository;
+        $this->orderRepository      = $orderRepository;
+        $this->orderItemRepository  = $orderItemRepository;
+        $this->productRepository    = $productRepository;
+        $this->customerRepository   = $customerRepository;
     }
 
     public function listOrder(int $perPage = 15)
@@ -23,10 +34,43 @@ class OrderService
         return OrderResource::collection($collection);
     }
 
-    public function createOrder(array $payload)
+    public function createOrder(int $customerId, array $items)
     {
-        $model = $this->orderRepository->create($payload);
-        return new OrderResource($model);
+        // Step 1: Verify customer exists
+        $customer = $this->customerRepository->findById($customerId);
+        if (!$customer) {
+            throw new \Exception("Customer not found");
+        }
+
+        // Step 2: Calculate total
+        $total = 0;
+        foreach ($items as $item) {
+            $product = $this->productRepository->findById($item['product_id']);
+            if (!$product) {
+                throw new \Exception("Product not found");
+            }
+            $total += $product->price * $item['quantity'];
+        }
+
+        // Step 3: Create order
+        $order = $this->orderRepository->create([
+            'customer_id'   => $customer->id,
+            'total_amount'  => $total,
+        ]);
+
+        // Step 4: Create order items
+        foreach ($items as $item) {
+            $product = $this->productRepository->findById($item['product_id']);
+
+            $this->orderItemRepository->create([
+                'order_id'   => $order->id,
+                'product_id' => $product->id,
+                'quantity'   => $item['quantity'],
+                'unit_price' => $product->price,
+            ]);
+    }
+
+    return new OrderResource($order);
     }
 
     public function getOrder(string $uuid)

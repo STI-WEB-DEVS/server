@@ -9,41 +9,48 @@ use Illuminate\Http\JsonResponse;
 
 class OrderController extends Controller
 {
-    private OrderService $orderService;
-
     public function __construct(OrderService $orderService)
     {
         $this->orderService = $orderService;
     }
 
-    public function index(Request $request)
+    public function index(): JsonResponse
     {
-        return $this->orderService->listOrder($request->input('per_page', 15));
+        $orders = $this->orderService->listOrder();
+        return response()->json($orders);
     }
 
-    public function store(OrderStoreRequest $request)
+    public function store(OrderStoreRequest $request): JsonResponse
     {
-        return $this->orderService->createOrder($request->all());
+        $customerId = $request->input('customer_id');
+        $items      = $request->input('items');
+
+        $order = $this->orderService->createOrder($customerId, $items);
+
+        return response()->json($order, 201);
     }
 
-    public function show(string $uuid)
+    public function show(string $uuid): JsonResponse
     {
-        return $this->orderService->getOrder($uuid);
+        $order = $this->orderService->getOrder($uuid);
+        return response()->json($order);
     }
 
-    public function update(Request $request, string $uuid)
+    public function update(string $uuid, OrderStoreRequest $request): JsonResponse
     {
-        return $this->orderService->updateOrder($uuid, $request->all());
+        $order = $this->orderService->updateOrder($uuid, $request->validated());
+        return response()->json($order);
     }
 
-    public function destroy(string $uuid)
+    public function destroy(string $uuid): JsonResponse
     {
         $this->orderService->deleteOrder($uuid);
-        return response()->json(['message' => 'Deleted successfully'], 200);
+        return response()->json(null, 204);
     }
-    
-    public function restore(string $uuid)
+
+    public function restore(string $uuid): JsonResponse
     {
-        return $this->orderService->restoreOrder($uuid);
+        $order = $this->orderService->restoreOrder($uuid);
+        return response()->json($order);
     }
 }
