@@ -19,6 +19,17 @@ class OrderRepository
         return Order::with(['items.product', 'customer'])->paginate($perPage);
     }
 
+    public function findByCustomerUuid(string $uuid, int $perPage = 15)
+    {
+        return Order::with(['items.product', 'customer'])
+                    ->whereHas('customer', function ($query) use ($uuid) {
+                        $query->where('uuid', $uuid);
+                    })
+                    ->paginate($perPage);
+    }    
+
+
+
     public function findById(int $id): ?Order
     {
         return Order::find($id);
@@ -45,12 +56,5 @@ class OrderRepository
     {
         $order = $this->findByUuid($uuid);
         return $order->delete();
-    }
-
-    public function restore(string $uuid): ?Order
-    {
-        $order = Order::withTrashed()->where('uuid', $uuid)->first();
-        $order->restore();
-        return $order;
     }
 }

@@ -20,6 +20,14 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    public function customerOrders(string $customerUuid)
+    {
+        $orders = $this->orderService->getOrdersByCustomerUuid($customerUuid);
+        return response()->json($orders);
+    }
+
+
+
     public function store(OrderStoreRequest $request): JsonResponse
     {
         $customerId = $request->input('customer_id');
@@ -46,11 +54,5 @@ class OrderController extends Controller
     {
         $this->orderService->deleteOrder($uuid);
         return response()->json(null, 204);
-    }
-
-    public function restore(string $uuid): JsonResponse
-    {
-        $order = $this->orderService->restoreOrder($uuid);
-        return response()->json($order);
     }
 }

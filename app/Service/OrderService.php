@@ -34,6 +34,14 @@ class OrderService
         return OrderResource::collection($collection);
     }
 
+    public function getOrdersByCustomerUuid(string $customerUuid, int $perPage = 15)
+    {
+        $orders = $this->orderRepository->findByCustomerUuid($customerUuid, $perPage);
+        return OrderResource::collection($orders);
+    }
+
+
+
     public function createOrder(int $customerId, array $items)
     {
         // Step 1: Verify customer exists
@@ -95,11 +103,5 @@ class OrderService
     {
         $this->orderRepository->delete($uuid);
         return true;
-    }
-
-    public function restoreOrder(string $uuid)
-    {
-        $model = $this->orderRepository->restore($uuid);
-        return new OrderResource($model);
     }
 }
