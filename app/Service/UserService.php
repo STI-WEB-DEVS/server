@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Http\Resources\UserResource;
 use App\Repository\UserRepository;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 
 class UserService
 {
@@ -31,6 +32,9 @@ class UserService
             return response()->json(['message' => 'Invalid password'], 401);
         }
 
+        // Optional: revoke old tokens (prevents token spam)
+        $user->tokens()->delete();
+
         $token = $user->createToken($user->email)->plainTextToken;
 
         return response()->json([
@@ -39,12 +43,21 @@ class UserService
         ], 200);
     }
 
-    public function logoutUser(object $user)
+    public function logoutUser(Request $request)
     {
-        if ($user->currentAccessToken()) {
-            $user->currentAccessToken()->delete();
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json([
+                'message' => 'Unauthenticated'
+            ], 401);
         }
 
-        return response()->json(['message' => 'Logged out successfully'], 200);
+        // delete ONLY current token (correct Sanctum behavior)
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Logged out successfully'
+        ], 200);
     }
 }
