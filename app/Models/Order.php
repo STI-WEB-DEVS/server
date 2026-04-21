@@ -10,8 +10,9 @@ class Order extends Model
     use HasUuids;
 
     protected $fillable = [
-        'customer_id',
-        'total_amount',
+        'uuid',
+        'customer_id', 
+        'total_amount'
     ];
 
     public function uniqueIds(): array
@@ -23,4 +24,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function customer()
+{
+    return $this->belongsTo(Customer::class);
+}
 }
