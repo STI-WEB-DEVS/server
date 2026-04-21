@@ -7,25 +7,23 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class OrderResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
             'uuid'           => $this->uuid,
-            'customer_uuid'  => $this->customer_id, // Mapping DB column to Payload name
+            // Use the relationship to get the Customer's UUID string instead of the ID number
+            'customer_uuid'  => $this->customer->uuid ?? $this->customer_id, 
             'total_amount'   => $this->total_amount,
             'created_at'     => $this->created_at->format('Y-m-d H:i:s'),
             
-            // If you have the product and quantity in your order_items table:
+            // This pulls the data from the order_items table
             'items' => $this->whenLoaded('items', function() {
                 return $this->items->map(function($item) {
                     return [
-                        'product_uuid' => $item->product_id,
+                        // Use the product relationship to get the Product's UUID string
+                        'product_uuid' => $item->product->uuid ?? $item->product_id,
                         'quantity'     => $item->quantity,
+                        'unit_price'   => $item->unit_price,
                     ];
                 });
             }),

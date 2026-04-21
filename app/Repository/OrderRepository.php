@@ -3,7 +3,8 @@
 namespace App\Repository;
 
 use App\Models\Order;
-
+use App\Models\OrderItem;
+use App\Http\Resources\OrderResource;
 class OrderRepository
 {
     public function paginate(int $perPage = 15)
@@ -13,11 +14,21 @@ class OrderRepository
 
     public function create(array $payload)
     {
-        // Maps the payload 'customer_uuid' to your DB column 'customer_id'
-        return Order::create([
-            'customer_id'  => $payload['customer_uuid'],
+            return Order::create([
+            'uuid'         => $payload['uuid'],
+            'customer_id'  => $payload['customer_id'], // This must be the ID, not UUID
             'total_amount' => $payload['total_amount'] ?? 0,
-            // Add 'product_id' => $payload['product_uuid'] if you aren't using an items table
+        ]);
+    }
+
+    public function createItem(array $data)
+    {
+            return OrderItem::create([
+            'uuid'       => $data['uuid'], // Add this if your order_items has a uuid column
+            'order_id'   => $data['order_id'],   
+            'product_id' => $data['product_id'], 
+            'quantity'   => $data['quantity'],
+            'unit_price' => $data['unit_price'] ?? 0,
         ]);
     }
 
@@ -26,12 +37,9 @@ class OrderRepository
         return Order::where('uuid', $uuid)->firstOrFail();
     }
 
-    /**
-     * Requirement: Return a list of orders made by a customer.
-     * Changed from firstOrFail() to get() to return a collection of orders.
-     */
     public function findByField(string $field, $value)
     {
+        // Changed to get() to return all orders for a customer
         return Order::where($field, $value)->get();
     }
 
@@ -57,4 +65,10 @@ class OrderRepository
 
         return $model;
     }
+    public function findByCustomerUuid(string $uuid)
+{
+    return \App\Models\Order::whereHas('customer', function($query) use ($uuid) {
+        $query->where('uuid', $uuid);
+    })->with(['items.product', 'customer'])->get();
+}
 }
