@@ -7,19 +7,21 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderRepository
 {
+    public function findByUuid(string $uuid): ?Order
+    {
+        return Order::with(['items.product', 'customer'])
+                    ->where('uuid', $uuid)
+                    ->first();
+    }
+
     public function paginate(int $perPage = 15)
     {
-        return Order::paginate($perPage);
+        return Order::with(['items.product', 'customer'])->paginate($perPage);
     }
 
     public function findById(int $id): ?Order
     {
         return Order::find($id);
-    }
-
-    public function findByUuid(string $uuid): ?Order
-    {
-        return Order::where('uuid', $uuid)->first();
     }
 
     public function findByField(string $field, $value): ?Order
