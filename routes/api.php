@@ -10,17 +10,22 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::apiResources([
-    'companies' => CompanyController::class,
-    'languages' => LanguageController::class,
-    'products'  => ProductController::class,
-    'customers' => CustomerController::class,
-    'orders'    => OrderController::class,
-]);
 
-
-Route::get('/customers/orders/{customerUuid}', [OrderController::class, 'listByCustomer']);
 
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::delete('/logout', [AuthController::class, 'logout']);
+
+    Route::apiResources([
+        'companies' => CompanyController::class,
+        'languages' => LanguageController::class,
+        'products' => ProductController::class,
+        'customers' => CustomerController::class,
+        'orders' => OrderController::class,
+    ]);
+
+    Route::get('/customers/orders/{customerUuid}', [OrderController::class, 'listByCustomer']);
+
+
+
 });
