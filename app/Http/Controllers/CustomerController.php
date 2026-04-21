@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Customer;
 use App\Service\CustomerService;
 
 
@@ -26,10 +27,17 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        if($request){
+        $accountExists = Customer::where('email', $request->email)->exists();
+
+        if ($accountExists) {
             return response()->json(['message' => 'Already exists'], 409);
         }
+
         return $this->customerService->createCustomer($request->all());
+        // if($request){
+        //     return response()->json(['message' => 'Already exists'], 409);
+        // }
+        // return $this->customerService->createCustomer($request->all());
     }
 
     /**
