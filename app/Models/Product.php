@@ -18,4 +18,9 @@ class Product extends Model
     {
         return ['uuid'];
     }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }
