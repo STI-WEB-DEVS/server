@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Repository\ProductsRepository;
 use App\Http\Resources\ProductsResource;
+use App\Models\OrderItem;
 
 class ProductsService
 {
@@ -51,8 +52,9 @@ class ProductsService
 
     public function deleteProducts(string $uuid)
     {
-        $this->productsRepository->delete($uuid);
-        return true;
+        $product = $this->productsRepository->findByUuid($uuid);
+        OrderItem::where('product_id', $product->id)->delete();
+        return $product->delete();
     }
 
     public function restoreProducts(string $uuid)
