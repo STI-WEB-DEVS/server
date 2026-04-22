@@ -25,29 +25,29 @@ class OrderService
     /**
      * Requirement: Create an Order and OrderItem automatically.
      */
-public function createOrder(array $payload)
-{
-    $customer = \App\Models\Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
-    $product = \App\Models\Product::where('uuid', $payload['product_uuid'])->firstOrFail();
+    public function createOrder(array $payload)
+    {
+        $customer = \App\Models\Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+        $product = \App\Models\Product::where('uuid', $payload['product_uuid'])->firstOrFail();
+        $quantity = (int) $payload['quantity'];
 
-    return DB::transaction(function () use ($customer, $product, $payload) {
-    $order = $this->orderRepository->create([
-        'uuid' => (string) \Illuminate\Support\Str::uuid(),
-        'customer_id' => $customer->id,
-        'total_amount' => $product->price * $payload['quantity'],
-    ]);
+        return DB::transaction(function () use ($customer, $product, $quantity) {
+            $order = $this->orderRepository->create([
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'customer_id' => $customer->id,
+                'total_amount' => $product->price * $quantity,
+            ]);
 
-    $this->orderRepository->createItem([
-        'uuid' => (string) \Illuminate\Support\Str::uuid(),
-        'order_id' => $order->id,
-        'product_id' => $product->id,
-        'quantity' => $payload['quantity'],
-        'unit_price' => $product->price,
-    ]);
+            $this->orderRepository->createItem([
+                'order_id' => $order->id,
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'unit_price' => $product->price,
+            ]);
 
-    return $order;
-    });
-}
+            return $order;
+        });
+    }
 
     public function getOrder(string $uuid)
     {

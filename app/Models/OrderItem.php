@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo; // <--- ADD THIS LINE
 class OrderItem extends Model
 {
     protected $fillable = [
-        'uuid', // Make sure uuid is here if you're using it
         'order_id',
         'product_id',
         'quantity',

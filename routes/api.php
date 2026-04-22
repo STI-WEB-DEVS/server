@@ -8,13 +8,11 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
-// Public Routes
 Route::post('/login', [AuthController::class, 'login']);
-
 Route::post('/orders', [OrderController::class, 'store']);
 
-Route::get('customers/{customer}/orders', [OrderController::class, 'index']);
-Route::post('products/{uuid}/restore', [ProductController::class, 'restore']);
+Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'index']);
+Route::post('/products/{uuid}/restore', [ProductController::class, 'restore']);
 
 Route::apiResources([
     'customers' => CustomerController::class,
@@ -23,7 +21,5 @@ Route::apiResources([
 ]);
 
 Route::middleware('auth:sanctum')->group(function () {
-    
     Route::delete('/logout', [AuthController::class, 'logout']);
-
 });

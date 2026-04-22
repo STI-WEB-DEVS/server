@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Http\Resources\OrderResource;
+
 class OrderRepository
 {
     public function paginate(int $perPage = 15)
@@ -14,19 +14,18 @@ class OrderRepository
 
     public function create(array $payload)
     {
-            return Order::create([
+        return Order::create([
             'uuid'         => $payload['uuid'],
-            'customer_id'  => $payload['customer_id'], // This must be the ID, not UUID
+            'customer_id'  => $payload['customer_id'],
             'total_amount' => $payload['total_amount'] ?? 0,
         ]);
     }
 
     public function createItem(array $data)
     {
-            return OrderItem::create([
-            'uuid'       => $data['uuid'], // Add this if your order_items has a uuid column
-            'order_id'   => $data['order_id'],   
-            'product_id' => $data['product_id'], 
+        return OrderItem::create([
+            'order_id'   => $data['order_id'],
+            'product_id' => $data['product_id'],
             'quantity'   => $data['quantity'],
             'unit_price' => $data['unit_price'] ?? 0,
         ]);
@@ -39,7 +38,6 @@ class OrderRepository
 
     public function findByField(string $field, $value)
     {
-        // Changed to get() to return all orders for a customer
         return Order::where($field, $value)->get();
     }
 
@@ -65,10 +63,11 @@ class OrderRepository
 
         return $model;
     }
+
     public function findByCustomerUuid(string $uuid)
-{
-    return \App\Models\Order::whereHas('customer', function($query) use ($uuid) {
-        $query->where('uuid', $uuid);
-    })->with(['items.product', 'customer'])->get();
-}
+    {
+        return Order::whereHas('customer', function ($query) use ($uuid) {
+            $query->where('uuid', $uuid);
+        })->with(['items.product', 'customer'])->get();
+    }
 }

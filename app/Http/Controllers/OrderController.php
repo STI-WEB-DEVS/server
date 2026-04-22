@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Service\OrderService;
-use App\Http\Resources\OrderResource;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -14,12 +13,11 @@ class OrderController extends Controller
     {
         $this->orderService = $orderService;
     }
-   
-    public function index(Request $request, string $customer_uuid)
+
+    public function index(string $customer_uuid)
     {
         return $this->orderService->getOrdersByCustomer($customer_uuid);
     }
-
 
     public function store(Request $request)
     {
@@ -32,33 +30,20 @@ class OrderController extends Controller
         return $this->orderService->createOrder($validated);
     }
 
-    /**
-     * Display a specific order.
-     */
     public function show(string $uuid)
     {
         return $this->orderService->getOrder($uuid);
     }
 
-    /**
-     * Update an order.
-     */
     public function update(Request $request, string $uuid)
     {
         return $this->orderService->updateOrder($uuid, $request->all());
     }
 
-    /**
-     * Soft delete an order.
-     */
     public function destroy(string $uuid)
     {
         $this->orderService->deleteOrder($uuid);
 
         return response()->json(['message' => 'Order deleted successfully'], 200);
-    }
-    public function getOrdersByCustomer($customerUuid)
-    {
-        return $this->orderService->getOrdersByCustomer($customerUuid);
     }
 }
