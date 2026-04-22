@@ -9,14 +9,17 @@ use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
-Route::apiResources([
-    'companies' => CompanyController::class,
-    'languages' => LanguageController::class,
-    'products' => ProductController::class,
-    'customers' => CustomerController::class,
-    'orders' => OrderController::class,
-]);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::delete('/logout', [AuthController::class, 'logout']);
 
-Route::get('/orders/{customeruuid}/customers', [OrderController::class, 'listByCustomer']);
+    Route::apiResources([
+        'companies' => CompanyController::class,
+        'languages' => LanguageController::class,
+        'products' => ProductController::class,
+        'customers' => CustomerController::class,
+        'orders' => OrderController::class,
+    ]);
+
+    Route::get('/orders/{customeruuid}/customers', [OrderController::class, 'listByCustomer']);
+});
