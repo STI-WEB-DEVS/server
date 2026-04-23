@@ -23,7 +23,7 @@ Route::apiResources([
 Route::get('/customers/orders/{customerUuid}', [OrderController::class, 'listByCustomer']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Route::delete('/logout', [AuthController::class, 'logout']);
+    Route::delete('/logout', [AuthController::class, 'logout']);
 
     Route::apiResources([
         'customer' => CustomerController::class

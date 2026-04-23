@@ -31,6 +31,7 @@ class UserService
             return response()->json(['message' => 'Invalid password'], 401);
         }
 
+        $user->tokens()->delete();
         $token = $user->createToken($user->email)->plainTextToken;
 
         return response()->json([

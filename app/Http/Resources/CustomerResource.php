@@ -18,9 +18,8 @@ class CustomerResource extends JsonResource
             'uuid'       => $this->uuid,
             'name'       => $this->name,
             'email'      => $this->email,
-            'phone'      => $this->phone,
-            'address'    => $this->address,
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }
