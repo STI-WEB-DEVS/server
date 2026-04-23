@@ -1,0 +1,19 @@
+design table
+
+create migration [ php artisan make:migration revise_billings_table ]
+
+create seeder [php artisan make:seeder  UserSeeder ]
+
+create model [ php artisan make:model MaintenanceTransactionItem ]
+    -- define relationship
+    -- or php artisan make:model Company -m
+
+create route [ Route::apiResources ] (restful)
+
+create controller [ php artisan make:controller CompanyController --resource ]
+
+create service
+
+create repository service
+
+create resource [ php artisan make:resource UserResource ]
