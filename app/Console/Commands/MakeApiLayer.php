@@ -38,7 +38,7 @@ class MakeApiLayer extends Command
 
     namespace App\Http\Controllers;
 
-    use App\Services\DummyService;
+    use App\Service\DummyService;
     use Illuminate\Http\Request;
     use Illuminate\Http\JsonResponse;
 
@@ -90,7 +90,7 @@ class MakeApiLayer extends Command
     protected const SERVICE_STUB = <<<'STUB'
     <?php
     
-    namespace App\Services;
+    namespace App\Service;
     
     use App\Repository\DummyRepository;
     use App\Http\Resources\DummyResource;
