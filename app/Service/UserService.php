@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Http\Resources\UserResource;
 use App\Repository\UserRepository;
 use Illuminate\Support\Facades\Hash;
 
@@ -34,8 +33,9 @@ class UserService
         $token = $user->createToken($user->email)->plainTextToken;
 
         return response()->json([
-            'user' => new UserResource($user),
-            'token' => $token
+            'uuid'  => $user->uuid,
+            'role'  => $user->getRoleNames()->first() ?? 'customer',
+            'token' => $token,
         ], 200);
     }
 

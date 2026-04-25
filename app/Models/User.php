@@ -11,7 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, HasUuids, HasRoles   ;
+    use HasFactory, Notifiable, HasApiTokens, HasUuids, HasRoles;
 
     public function uniqueIds()
     {
