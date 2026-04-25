@@ -19,12 +19,12 @@ class ProductsRepository
 
     public function findByUuid(string $uuid)
     {
-        return Product::where('uuid', $uuid)->firstOrFail();
+        return Product::where('uuid', $uuid)->first();
     }
 
     public function findByField(string $field, $value)
     {
-        return Product::where($field, $value)->firstOrFail();
+        return Product::where($field, $value)->first();
     }
 
     public function update(string $uuid, array $payload)
@@ -42,7 +42,7 @@ class ProductsRepository
 
     public function restore(string $uuid)
     {
-        $model = Product::withTrashed()->where('uuid', $uuid)->firstOrFail();
+        $model = Product::withTrashed()->where('uuid', $uuid)->first();
         $model->restore();
         return $model;
     }
