@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Models\Product;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductRepository
 {
@@ -21,10 +20,10 @@ class ProductRepository
     {
         return Product::where('uuid', $uuid)->firstOrFail();
     }
-    
-    public function findById(string $id)
+
+    public function findById(int $id)
     {
-        return Product::where('id', $id)->first();
+        return Product::where('id', $id)->firstOrFail();
     }
 
     public function findByField(string $field, $value)
@@ -36,12 +35,14 @@ class ProductRepository
     {
         $model = $this->findByUuid($uuid);
         $model->update($payload);
+
         return $model;
     }
 
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
+
         return $model->delete();
     }
 
@@ -49,6 +50,7 @@ class ProductRepository
     {
         $model = Product::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $model->restore();
+
         return $model;
     }
 }

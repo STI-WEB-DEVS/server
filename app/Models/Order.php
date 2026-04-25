@@ -7,11 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'customer_id',
         'total_amount',
         'uuid',
     ];
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
 
     public function customer()
     {
