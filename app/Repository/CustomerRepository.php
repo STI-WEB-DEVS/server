@@ -14,7 +14,16 @@ class CustomerRepository
 
     public function create(array $payload)
     {
-        return Customer::create($payload);
+        // This will return the existing record if the email matches, 
+    // or create a new one if it doesn't.
+    return Customer::firstOrCreate(
+        ['email' => $data['email']], // Search criteria
+        [
+            'name' => $data['name'],
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            // add other fields here...
+        ]
+    );
     }
 
     public function findByUuid(string $uuid)

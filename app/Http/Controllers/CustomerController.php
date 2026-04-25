@@ -21,7 +21,13 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        return $this->customerService->createCustomer($request->all());
+        $validated = $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:customers,email', // This checks if email exists
+        ]);
+    
+        // If validation passes, proceed to your service
+        return $this->customerService->createCustomer($validated);
     }
 
 
