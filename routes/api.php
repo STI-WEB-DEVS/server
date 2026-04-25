@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\LanguageController;
@@ -21,6 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // ]);
 
     Route::apiResources([
-         'customers' => CustomerController::class
+         'customers' => CustomerController::class,
+         'order' => OrderController::class,
+         'product' => ProductController::class
     ]);
 });
