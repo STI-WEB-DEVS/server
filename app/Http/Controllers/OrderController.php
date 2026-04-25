@@ -15,66 +15,36 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
-    /**
-     * GET /api/orders
-     * List all orders (paginated).
-     */
     public function index(): JsonResponse
     {
         $orders = $this->orderService->listOrder();
-
         return response()->json($orders);
     }
 
-    /**
-     * GET /api/customers/{customerUuid}/orders
-     * List all orders belonging to a specific customer.
-     */
     public function customerOrders(string $customerUuid): JsonResponse
     {
         $orders = $this->orderService->getOrdersByCustomerUuid($customerUuid);
-
         return response()->json($orders);
     }
 
-    /**
-     * POST /api/orders
-     *
-     * Payload:
-     * {
-     *   "customer_uuid": "<uuid>",
-     *   "items": [
-     *     { "product_uuid": "<uuid>", "quantity": 2 }
-     *   ]
-     * }
-     */
     public function store(OrderStoreRequest $request): JsonResponse
     {
         $order = $this->orderService->createOrder(
             $request->input('customer_uuid'),
             $request->input('items')
         );
-
         return response()->json($order, 201);
     }
 
-    /**
-     * GET /api/orders/{uuid}
-     */
     public function show(string $uuid): JsonResponse
     {
         $order = $this->orderService->getOrder($uuid);
-
         return response()->json($order);
     }
 
-    /**
-     * DELETE /api/orders/{uuid}
-     */
     public function destroy(string $uuid): JsonResponse
     {
         $this->orderService->deleteOrder($uuid);
-
         return response()->json(null, 204);
     }
 }

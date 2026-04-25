@@ -31,47 +31,41 @@ class OrderService
     public function listOrder(int $perPage = 15)
     {
         $collection = $this->orderRepository->paginate($perPage);
-
         return OrderResource::collection($collection);
     }
 
     public function getOrdersByCustomerUuid(string $customerUuid, int $perPage = 15)
     {
         $orders = $this->orderRepository->findByCustomerUuid($customerUuid, $perPage);
-
         return OrderResource::collection($orders);
     }
 
     /**
-     * Create an order using uuid-based payload.
-     *
-     * @param  string $customerUuid
-     * @param  array  $items  Each item: ['product_uuid' => string, 'quantity' => int]
+     * @param string $customerUuid  — uuid from the request payload
+     * @param array  $items         — [['product_uuid' => string, 'quantity' => int], ...]
      */
     public function createOrder(string $customerUuid, array $items)
     {
-        // Resolve customer via uuid
+        // Resolve customer by uuid
         $customer = $this->customerRepository->findByUuid($customerUuid);
 
-        // Resolve all products first and calculate total
+        // Resolve products and compute total
         $resolvedItems = [];
         $total         = 0;
 
         foreach ($items as $item) {
-            $product = $this->productRepository->findByUuid($item['product_uuid']);
-
+            $product  = $this->productRepository->findByUuid($item['product_uuid']);
             $subtotal = $product->price * $item['quantity'];
             $total   += $subtotal;
 
             $resolvedItems[] = [
-                'product'   => $product,
-                'quantity'  => $item['quantity'],
+                'product'    => $product,
+                'quantity'   => $item['quantity'],
                 'unit_price' => $product->price,
-                'subtotal'  => $subtotal,
             ];
         }
 
-        // Wrap in a transaction so order + items are atomic
+        // Create order + items in one transaction
         $order = DB::transaction(function () use ($customer, $resolvedItems, $total) {
             $order = $this->orderRepository->create([
                 'customer_id'  => $customer->id,
@@ -90,7 +84,6 @@ class OrderService
             return $order;
         });
 
-        // Reload with relationships for the resource
         $order->load(['items.product', 'customer']);
 
         return new OrderResource($order);
@@ -99,21 +92,18 @@ class OrderService
     public function getOrder(string $uuid)
     {
         $model = $this->orderRepository->findByUuid($uuid);
-
         return new OrderResource($model);
     }
 
     public function updateOrder(string $uuid, array $payload)
     {
         $model = $this->orderRepository->update($uuid, $payload);
-
         return new OrderResource($model);
     }
 
     public function deleteOrder(string $uuid)
     {
         $this->orderRepository->delete($uuid);
-
         return true;
     }
 }
