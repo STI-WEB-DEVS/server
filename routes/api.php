@@ -9,9 +9,13 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Route::delete('/logout', [AuthController::class, 'logout']);
+    Route::delete('/logout', [AuthController::class, 'logout']);
 
     Route::apiResources([
-        'customer' => CustomerController::class
+        'customer' => CustomerController::class,
+        'companies' => CompanyController::class,
+        'languages' => LanguageController::class,
+        'products' => ProductController::class,
+        'order' => OrderController::class,
     ]);
 });
