@@ -36,11 +36,13 @@ class CustomerController extends Controller
 
     public function update(Request $request, string $id)
     {
-        // Implementation for update can go here
+        return $this->customerService->updateCustomer($uuid, $request->all());
     }
 
     public function destroy(string $id)
     {
-        // Implementation for delete can go here
+        $this->customerService->deleteCustomer($uuid);
+
+        return response()->json(['message' => 'Deleted successfully'], 200);
     }
 }

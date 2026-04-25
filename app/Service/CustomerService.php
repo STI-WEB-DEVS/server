@@ -3,63 +3,56 @@
 namespace App\Service;
 
 use App\Http\Resources\LanguageResource;
-use App\Repository\LanguageRepository;
+use App\Repository\CustomerRepository;
 
-class LanguageService
+class  CustomerService
 {
-    private LanguageRepository $languageRepository;
-
-    public function __construct(LanguageRepository $languageRepository)
+    private CustomerRepository $customerRepository;
+    
+    public function __construct(CustomerRepository $customerRepository)
     {
-        $this->languageRepository = $languageRepository;
+        $this->customerRepository = $customerRepository;
     }
 
-    public function listLanguage(int $perPage = 15)
+    public function listCustomer(int $perPage = 15)
     {
-        $collection = $this->languageRepository->paginate($perPage);
+        $collection = $this->customerRepository->paginate($perPage);
 
-        return LanguageResource::collection($collection);
+        return CustomerResource::collection($collection);
     }
 
-    public function createLanguage(array $payload)
+    public function createCustomer(array $payload)
     {
-        $model = $this->languageRepository->create($payload);
+        $model = $this->customerRepository->create($payload);
 
-        return new LanguageResource($model);
+        return new CustomerResource($model);
     }
 
-    public function getLanguage(string $uuid)
+    public function getCustomer(string $uuid)
     {
-        $model = $this->languageRepository->findByUuid($uuid);
+        $model = $this->customerRepository->findByUuid($uuid);
 
-        return new LanguageResource($model);
+        return new CustomerResource($model);
     }
 
-    public function getLanguageByField(string $field, $value)
+    public function getCustomerByField(string $field, $value)
     {
-        $model = $this->languageRepository->findByField($field, $value);
+        $model = $this->customerRepository->findByField($field, $value);
 
-        return new LanguageResource($model);
+        return new CustomerResource($model);
     }
 
-    public function updateLanguage(string $uuid, array $payload)
+    public function updateCustomer(string $uuid, array $payload)
     {
-        $model = $this->languageRepository->update($uuid, $payload);
+        $model = $this->customerRepository->update($uuid, $payload);
 
-        return new LanguageResource($model);
+        return new CustomerResource($model);
     }
 
-    public function deleteLanguage(string $uuid)
+    public function deleteCustomer(string $uuid)
     {
-        $this->languageRepository->delete($uuid);
+        $this->customerRepository->delete($uuid);
 
         return true;
-    }
-
-    public function restoreLanguage(string $uuid)
-    {
-        $model = $this->languageRepository->restore($uuid);
-
-        return new LanguageResource($model);
     }
 }

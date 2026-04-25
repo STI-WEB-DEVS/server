@@ -2,47 +2,53 @@
 
 namespace App\Repository;
 
-use App\Models\Customer;
+use App\Models\Product;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class CustomerRepository
+class ProductRepository
 {
     public function paginate(int $perPage = 15)
     {
-        return Customer::latest()->paginate($perPage);
+        return Product::latest()->paginate($perPage);
     }
 
     public function create(array $payload)
     {
-        return Customer::create($payload);
+        return Product::create($payload);
     }
 
     public function findByUuid(string $uuid)
     {
-        return Customer::where('uuid', $uuid)->first();
+        return Product::where('uuid', $uuid)->firstOrFail();
     }
-
+    
     public function findById(string $id)
     {
-        return Customer::where('id', $id)->first();
+        return Product::where('id', $id)->first();
     }
 
     public function findByField(string $field, $value)
     {
-        return Customer::where($field, $value)->first();
+        return Product::where($field, $value)->firstOrFail();
     }
 
     public function update(string $uuid, array $payload)
     {
         $model = $this->findByUuid($uuid);
         $model->update($payload);
-
         return $model;
     }
 
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
-
         return $model->delete();
+    }
+
+    public function restore(string $uuid)
+    {
+        $model = Product::withTrashed()->where('uuid', $uuid)->firstOrFail();
+        $model->restore();
+        return $model;
     }
 }
