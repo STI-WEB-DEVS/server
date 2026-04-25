@@ -10,9 +10,14 @@ class Customer extends Model
     use HasUuids;
 
     protected $fillable = [
+        'uuid', 
         'name',
         'email',
     ];
+
+    protected $primaryKey = 'uuid';
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     public function uniqueIds(): array
     {

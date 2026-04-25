@@ -2,25 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasUuid; // If your project uses a trait for UUIDs
 
 class Order extends Model
 {
-    use HasUuids;
+    use HasFactory;
 
+    // VERY IMPORTANT: Add these so the Repository can save data
     protected $fillable = [
+        'uuid',
         'customer_id',
-        'total_amount',
+        'product_id',
+        'quantity',
     ];
 
-    public function uniqueIds(): array
+    /**
+     * Relationship: An Order belongs to a Customer
+     */
+    public function customer()
     {
-        return ['uuid'];
+        return $this->belongsTo(Customer::class);
     }
 
-    public function items()
+    /**
+     * Relationship: An Order belongs to a Product
+     */
+    public function product()
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->belongsTo(Product::class);
     }
 }
