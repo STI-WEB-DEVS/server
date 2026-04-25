@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CustomerStoreRequest extends FormRequest
+class OrderStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,15 +22,7 @@ class CustomerStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string'],
-            'email' => ['required', 'email']
+            //
         ];
     }
-
-    public function messages(): array
-{
-    return [
-        'email.unique' => 'This email address is already registered. Please use another one.',
-    ];
-}
 }
