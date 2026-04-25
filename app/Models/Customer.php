@@ -10,10 +10,11 @@ class Customer extends Model
     use HasUuids;
 
     protected $fillable = [
-        'name', 
+        'name',
         'email',
         'phone',
-        'address'
+        'address',
+        'customer_id'
     ];
 
     public function getRouteKeyName()

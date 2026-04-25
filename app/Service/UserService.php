@@ -31,7 +31,6 @@ class UserService
             return response()->json(['message' => 'Invalid password'], 401);
         }
 
-        $user->tokens()->delete();
         $token = $user->createToken($user->email)->plainTextToken;
 
         return response()->json([
@@ -40,10 +39,10 @@ class UserService
         ], 200);
     }
 
-    public function logoutUser(object $user)
+    public function logoutUser(?object $user)
     {
-        if ($user->currentAccessToken()) {
-            $user->currentAccessToken()->delete();
+        if ($user && method_exists($user, 'currentAccessToken') && $user->currentAccessToken()) {
+            $user->currentAccessToken()->update(['token' => null]);
         }
 
         return response()->json(['message' => 'Logged out successfully'], 200);
