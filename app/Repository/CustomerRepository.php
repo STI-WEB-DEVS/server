@@ -14,6 +14,12 @@ class CustomerRepository
 public function getAllCustomers(){
     return Customer::latest()->paginate(5);
 }
+
+public function findByUuid(string $uuid)
+{
+    return Customer::where('uuid', $uuid)->firstOrFail();
+}
+
     
  
     public function retrieveCustomer($payload){
