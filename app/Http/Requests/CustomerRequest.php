@@ -15,21 +15,21 @@ class CustomerRequest extends FormRequest
 
     public function rules(): array
     {
-        $isUpdate   = $this->isMethod('PUT') || $this->isMethod('PATCH');
-        // grab the uuid from the route for unique ignore on update
-        $uuid       = $this->route('uuid');
+        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        
+        // Use the parameter name defined in your routes (usually 'customer' or 'uuid')
+        $customerUuid = $this->route('customer') ?? $this->route('uuid');
 
         return [
-            'name'  => $isUpdate
-                        ? 'sometimes|required|string|max:255'
-                        : 'required|string|max:255',
-            'email' => $isUpdate
-                        ? "sometimes|required|email|unique:customers,email," 
-                            . ($uuid
-                                ? "(select id from customers where uuid='{$uuid}')"
-                                : 'NULL')
-                            . ",id"
-                        : 'required|email|unique:customers,email',
+            'name'  => $isUpdate ? 'sometimes|required|string|max:255' : 'required|string|max:255',
+            'email' => [
+                $isUpdate ? 'sometimes' : 'required',
+                'required',
+                'email',
+                // This replaces that complex sub-query string
+                \Illuminate\Validation\Rule::unique('customers', 'email')
+                    ->ignore($customerUuid, 'uuid'),
+            ],
         ];
     }
 
