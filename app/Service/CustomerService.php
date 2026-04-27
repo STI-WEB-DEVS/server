@@ -2,45 +2,57 @@
 
 namespace App\Service;
 
-use App\Http\Resources\CustomerResource;
 use App\Repository\CustomerRepository;
+use App\Http\Resources\CustomerResource;
 
 class CustomerService
 {
     private CustomerRepository $customerRepository;
 
-    public function __construct(CustomerRepository $customerRepository)
+    public function __construct(CustomerRepository $customerRepository) 
     {
         $this->customerRepository = $customerRepository;
     }
 
-    public function getAllCustomers()
+    public function listCustomer(int $perPage = 15)
     {
-        return CustomerResource::all();
+        $collection = $this->customerRepository->paginate($perPage);
+        return CustomerResource::collection($collection);
     }
 
-    public function createCustomer(array $data)
+    public function createCustomer(array $payload)
     {
-        return CustomerResource::create($data);
+        $model = $this->customerRepository->create($payload);
+        return new CustomerResource($model);
     }
 
     public function getCustomer(string $uuid)
     {
         $model = $this->customerRepository->findByUuid($uuid);
-
-        return new CustomerResource($model);    }
-
-    public function updateCustomer($uuid, array $payload)
-    {
-        $model = $this->customerRepository->update($uuid, $payload);
-
         return new CustomerResource($model);
     }
 
-    public function deleteCustomer($uuid)
+    public function getCustomerByField(string $field, $value)
+    {
+        $model = $this->customerRepository->findByField($field, $value);
+        return new CustomerResource($model);
+    }
+
+    public function updateCustomer(string $uuid, array $payload)
+    {
+        $model = $this->customerRepository->update($uuid, $payload);
+        return new CustomerResource($model);
+    }
+
+    public function deleteCustomer(string $uuid)
     {
         $this->customerRepository->delete($uuid);
-
         return true;
+    }
+
+    public function restoreCustomer(string $uuid)
+    {
+        $model = $this->customerRepository->restore($uuid);
+        return new CustomerResource($model);
     }
 }

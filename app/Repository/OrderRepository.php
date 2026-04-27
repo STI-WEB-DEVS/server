@@ -2,29 +2,29 @@
 
 namespace App\Repository;
 
-use App\Models\Customer;
+use App\Models\Order;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class CustomerRepository
+class OrderRepository
 {
     public function paginate(int $perPage = 15)
     {
-        return Customer::latest()->paginate($perPage);
+        return Order::latest()->paginate($perPage);
     }
 
     public function create(array $payload)
     {
-        return Customer::create($payload);
+        return Order::create($payload);
     }
 
     public function findByUuid(string $uuid)
     {
-        return Customer::where('uuid', $uuid)->firstOrFail();
+        return Order::where('uuid', $uuid)->firstOrFail();
     }
 
     public function findByField(string $field, $value)
     {
-        return Customer::where($field, $value)->firstOrFail();
+        return Order::where($field, $value)->firstOrFail();
     }
 
     public function update(string $uuid, array $payload)
@@ -42,7 +42,7 @@ class CustomerRepository
 
     public function restore(string $uuid)
     {
-        $model = Customer::withTrashed()->where('uuid', $uuid)->firstOrFail();
+        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $model->restore();
         return $model;
     }
