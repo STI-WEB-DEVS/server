@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CustomerStoreRequest extends FormRequest
+class StoreProductRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +23,7 @@ class CustomerStoreRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:customers,email',
+            'price' => 'required|numeric|min:0.01',
         ];
     }
 
@@ -33,11 +33,11 @@ class CustomerStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Customer name is required',
-            'name.max' => 'Customer name cannot exceed 255 characters',
-            'email.required' => 'Email is required',
-            'email.email' => 'Email must be a valid email address',
-            'email.unique' => 'This email is already registered',
+            'name.required' => 'Product name is required',
+            'name.max' => 'Product name cannot exceed 255 characters',
+            'price.required' => 'Price is required',
+            'price.numeric' => 'Price must be a valid number',
+            'price.min' => 'Price must be greater than 0',
         ];
     }
 }

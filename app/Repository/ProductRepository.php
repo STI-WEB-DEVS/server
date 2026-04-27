@@ -11,7 +11,7 @@ class ProductRepository
         return Product::latest()->paginate($perPage);
     }
  
-    public function create(array $payload)YV9BskWX
+    public function create(array $payload)
     {
         return Product::create($payload);
     }

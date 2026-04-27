@@ -36,15 +36,29 @@ class OrderRepository
         $model = $this->findByUuid($uuid);
         return $model->delete();
     }
-     
+
+    public function findByField(string $field, $value)
+    {
+        return Order::with(['items.product', 'customer'])
+            ->where($field, $value)
+            ->firstOrFail();
+    }
 
     public function getOrdersByCustomerUuid(string $customerUuid, int $perPage = 15)
     {
         $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
  
-        return Order::with(['items.product'])
+        return Order::with(['items.product', 'customer'])
             ->where('customer_id', $customer->id)
             ->latest()
             ->paginate($perPage);
+    }
+
+    public function restore(string $uuid)
+    {
+        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
+        $model->restore();
+
+        return $model;
     }
 }
