@@ -14,6 +14,9 @@ Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'index']);
 Route::post('/products/{uuid}/restore', [ProductController::class, 'restore']);
 
+Route::get('/orders', [OrderController::class, 'index']);
+Route::post('/orders', [OrderController::class, 'store']);
+
 Route::apiResources([
     'customers' => CustomerController::class,
     'products' => ProductController::class,

@@ -17,7 +17,6 @@ class CustomerStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'uuid'  => 'required|uuid|unique:customers,uuid',
             'name'  => 'required|string|max:255',
             'email' => 'required|email|unique:customers,email',
         ];

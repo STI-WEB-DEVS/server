@@ -3,71 +3,61 @@
 namespace App\Repository;
 
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\OrderItem; // Ensure this is imported
 
 class OrderRepository
 {
-    public function paginate(int $perPage = 15)
+    /**
+     * FIX: Added the missing all() method called by OrderService
+     */
+    public function all()
     {
-        return Order::latest()->paginate($perPage);
+        return Order::with(['customer', 'items.product'])
+            ->latest()
+            ->get();
     }
 
-    public function create(array $payload)
+    public function create(array $payload): Order
     {
-        return Order::create([
-            'uuid'         => $payload['uuid'],
-            'customer_id'  => $payload['customer_id'],
-            'total_amount' => $payload['total_amount'] ?? 0,
-        ]);
+        return Order::create($payload);
     }
 
-    public function createItem(array $data)
+    /**
+     * FIX: Updated to handle the payload directly 
+     * matching how the Service calls it: createItem($itemData)
+     */
+    public function createItem(array $payload)
     {
-        return OrderItem::create([
-            'order_id'   => $data['order_id'],
-            'product_id' => $data['product_id'],
-            'quantity'   => $data['quantity'],
-            'unit_price' => $data['unit_price'] ?? 0,
-        ]);
+        return OrderItem::create($payload);
     }
 
-    public function findByUuid(string $uuid)
+    /**
+     * Requirement: Return a list of orders made by a customer uuid.
+     * Use this if you are filtering by the string UUID.
+     */
+    public function findByCustomerUuid(string $customerUuid)
     {
-        return Order::where('uuid', $uuid)->firstOrFail();
+        return Order::whereHas('customer', function ($query) use ($customerUuid) {
+            $query->where('uuid', $customerUuid);
+        })
+        ->with(['customer', 'items.product'])
+        ->latest()
+        ->get();
     }
 
-    public function findByField(string $field, $value)
+    public function paginateByCustomerId(int $customerId, int $perPage = 15)
     {
-        return Order::where($field, $value)->get();
+        return Order::where('customer_id', $customerId)
+            ->with(['items.product'])
+            ->latest()
+            ->paginate($perPage);
     }
 
-    public function update(string $uuid, array $payload)
+    public function listByCustomerId(int $customerId)
     {
-        $model = $this->findByUuid($uuid);
-        $model->update($payload);
-
-        return $model;
-    }
-
-    public function delete(string $uuid)
-    {
-        $model = $this->findByUuid($uuid);
-
-        return $model->delete();
-    }
-
-    public function restore(string $uuid)
-    {
-        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
-        $model->restore();
-
-        return $model;
-    }
-
-    public function findByCustomerUuid(string $uuid)
-    {
-        return Order::whereHas('customer', function ($query) use ($uuid) {
-            $query->where('uuid', $uuid);
-        })->with(['items.product', 'customer'])->get();
+        return Order::where('customer_id', $customerId)
+            ->with(['customer', 'items.product'])
+            ->latest()
+            ->get();
     }
 }

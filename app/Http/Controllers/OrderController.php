@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Service\OrderService;
+use App\Http\Requests\OrderStoreRequest;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -14,20 +15,27 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
-    public function index(string $customer_uuid)
+    /**
+     * Display a listing of orders.
+     * Making the parameter optional (?string and = null) fixes the "Too few arguments" error.
+     */
+    public function index(?string $customer_uuid = null) 
     {
-        return $this->orderService->getOrdersByCustomer($customer_uuid);
+        // If a UUID is provided in the URL path, filter by customer
+        if ($customer_uuid) {
+            return $this->orderService->getOrdersByCustomer($customer_uuid);
+        }
+
+        // If no UUID is in the path, show all orders
+        return $this->orderService->getAllOrders();
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created order.
+     */
+    public function store(OrderStoreRequest $request) 
     {
-        $validated = $request->validate([
-            'customer_uuid' => 'required|uuid|exists:customers,uuid',
-            'product_uuid'  => 'required|uuid|exists:products,uuid',
-            'quantity'      => 'required|integer|min:1',
-        ]);
-
-        return $this->orderService->createOrder($validated);
+        return $this->orderService->createOrder($request->validated());
     }
 
     public function show(string $uuid)
@@ -43,7 +51,6 @@ class OrderController extends Controller
     public function destroy(string $uuid)
     {
         $this->orderService->deleteOrder($uuid);
-
         return response()->json(['message' => 'Order deleted successfully'], 200);
     }
 }
