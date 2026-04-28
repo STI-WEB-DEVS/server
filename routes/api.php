@@ -5,10 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\LanguageController;
-<<<<<<< Updated upstream
-=======
 use App\Http\Controllers\CustomerController;
->>>>>>> Stashed changes
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -23,10 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResources([
         'companies' => CompanyController::class,
         'languages' => LanguageController::class,
-<<<<<<< Updated upstream
-=======
         'customers' => CustomerController::class,
         'Products' => ProductController::class,
->>>>>>> Stashed changes
     ]);
 });
