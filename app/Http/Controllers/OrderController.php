@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\OrderStoreRequest;
 use App\Service\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class OrderController extends Controller
 {
@@ -26,9 +26,16 @@ class OrderController extends Controller
     /**
      * Store a newly created order in storage.
      */
-    public function store(OrderStoreRequest $request)
+    public function store(Request $request) 
     {
-        return $this->orderService->createOrder($request->all());
+        $validated = $request->validate([
+            'customer_id' => 'required|string', // The UUID string
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|string',
+            'items.*.quantity' => 'required|integer|min:1',
+    ]);
+
+        return $this->orderService->createOrder($validated);
     }
 
     /**

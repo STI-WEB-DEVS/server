@@ -20,12 +20,18 @@ class CustomerController extends Controller
     }
 
     public function store(Request $request)
-    {
-        if($request){
-            return response()->json(['message' => 'Already exists'], 409);
-        }
-        return $this->customerService->createCustomer($request->all());
-    }
+{
+    // 1. Validate the data (Crucial for security and logic)
+    $validatedData = $request->validate([
+        'email' => 'required|email|unique:customers,email',
+        'name'  => 'required|string',
+    ]);
+
+    // 2. Pass the validated data to the service
+    $customer = $this->customerService->createCustomer($validatedData);
+
+    return response()->json($customer, 201);
+}
 
     /**
      * Display the specified resource.

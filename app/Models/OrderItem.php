@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
+    // These fields MUST be listed here to allow createMany to work
     protected $fillable = [
         'order_id',
         'product_id',
