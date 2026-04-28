@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Service;
 
 use App\Repository\OrderRepository;
 use App\Repository\CustomerRepository;
@@ -29,14 +29,14 @@ class OrderService
      */
     public function createOrder(array $payload)
     {
-        // GINAMIT NA ANG REPOSITORY: Hindi na Model direkta
+        // 1. Hanapin ang customer
         $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
         
         $totalAmount = 0;
         $preparedItems = [];
 
+        // 2. Loop through each item in the array
         foreach ($payload['items'] as $item) {
-            // GINAMIT NA ANG REPOSITORY
             $product = $this->productRepository->findByUuid($item['product_uuid']);
             
             $subtotal = $product->price * $item['quantity'];
@@ -49,6 +49,7 @@ class OrderService
             ];
         }
 
+        // 3. Save order and items using Repository
         $order = $this->orderRepository->createWithItems(
             $customer->id, 
             $totalAmount, 
@@ -57,6 +58,8 @@ class OrderService
 
         return new OrderResource($order);
     }
+
+
 
     public function getCustomerOrders(string $customerUuid)
     {

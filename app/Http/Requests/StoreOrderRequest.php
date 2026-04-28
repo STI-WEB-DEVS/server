@@ -19,5 +19,7 @@ class StoreOrderRequest extends FormRequest
             'items.*.product_uuid' => 'required|exists:products,uuid',
             'items.*.quantity' => 'required|integer|min:1',
         ];
+
+
     }
 }

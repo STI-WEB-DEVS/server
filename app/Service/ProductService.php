@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Repository\ProductRepository;
+use App\Http\Resources\ProductResource;
+
 
 class ProductService
 {
@@ -15,23 +17,28 @@ class ProductService
 
     public function listProduct(int $perPage = 15)
     {
-        return $this->productRepository->paginate($perPage);
+        $collection = $this->productRepository->paginate($perPage);
+        return ProductResource::collection($collection);
     }
 
     public function createProduct(array $payload)
     {
-        return $this->productRepository->create($payload);
+        $model = $this->productRepository->create($payload);
+        return new ProductResource($model);
     }
 
     public function getProduct(string $uuid)
     {
-        return $this->productRepository->findByUuid($uuid);
+        $model = $this->productRepository->findByUuid($uuid);
+        return new ProductResource($model);
     }
 
     public function updateProduct(string $uuid, array $payload)
     {
-        return $this->productRepository->update($uuid, $payload);
+        $model = $this->productRepository->update($uuid, $payload);
+        return new ProductResource($model);
     }
+
 
     public function deleteProduct(string $uuid)
     {

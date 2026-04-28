@@ -13,14 +13,9 @@ class ProductRepository
     }
 
     public function create(array $payload)
-{
-    $product = new Product();
-    $product->name = $payload['name'];
-    $product->price = $payload['price'];
-    $product->save();
-    
-    return $product;
-}
+    {
+        return Product::create($payload);
+    }
 
     public function findByUuid(string $uuid)
     {
@@ -32,15 +27,7 @@ class ProductRepository
         return Product::where($field, $value)->firstOrFail();
     }
 
-    public function store(Request $request)
-{
-    $product = $this->productService->createProduct($request->all());
-    
-    return response()->json([
-        'message' => 'Product created successfully',
-        'data' => $product
-    ], 201); 
-}
+
 
     public function delete(string $uuid)
     {

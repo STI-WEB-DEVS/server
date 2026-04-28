@@ -20,10 +20,11 @@ class ProductController extends Controller
         return $this->productService->listProduct($request->input('per_page', 15));
     }
 
-    public function store(Request $request)
+    public function store(\App\Http\Requests\ProductStoreRequest $request)
     {
-        return $this->productService->createProduct($request->all());
+        return $this->productService->createProduct($request->validated());
     }
+
 
     public function show(string $uuid)
     {

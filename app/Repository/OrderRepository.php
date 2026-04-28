@@ -14,22 +14,16 @@ class OrderRepository
         return Order::latest()->paginate($perPage);
     }
 
-    /**
-     * UPDATED: Ngayon tumatanggap na ito ng array ng $items 
-     * para sa multiple products per order.
-     */
     public function createWithItems(int $customerId, float $totalAmount, array $items)
     {
         return DB::transaction(function () use ($customerId, $totalAmount, $items) {
             
-            // 1. Create ang main Order record
             $order = Order::create([
                 'uuid' => Str::uuid(),
                 'customer_id' => $customerId,
                 'total_amount' => $totalAmount,
             ]);
 
-            // 2. Loop through the items array at i-save sa order_items table
             foreach ($items as $item) {
                 OrderItem::create([
                     'order_id'   => $order->id,
@@ -39,7 +33,6 @@ class OrderRepository
                 ]);
             }
 
-            // Ibalik ang order kasama ang mga items at details
             return Order::with('items.product')->find($order->id);
         });
     }
