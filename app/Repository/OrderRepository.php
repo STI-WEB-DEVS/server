@@ -3,6 +3,9 @@
 namespace App\Repository;
 
 use App\Models\Order;
+use App\Models\Customer;
+use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderRepository
@@ -12,9 +15,14 @@ class OrderRepository
         return Order::latest()->paginate($perPage);
     }
 
-    public function create(array $payload)
+    public function create(array $data)
     {
-        return Order::create($payload);
+        return Order::create($data);
+
+    }
+    
+    public function createItem(Order $order, array $itemData){
+        return $order->items()->create ($itemData);
     }
 
     public function findByUuid(string $uuid)
@@ -48,6 +56,9 @@ class OrderRepository
     }
     public function getByCustomerUuid(string $customerUuid)
     {   
-    return Order::where('customer_uuid', $customerUuid)->get();
+    // We find the customer first, then get their orders via the relationship
+    $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+        
+    return Order::where('customer_id', $customer->id)->with('items')->get();
     }
 }

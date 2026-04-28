@@ -21,10 +21,17 @@ class OrderController extends Controller
         return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
-    public function store (StoreOrderRequest $request)
-    {
-        return $this->orderService->createOrder($request->validated());
-    }
+    public function store(Request $request)
+{
+    $validated = $request->validate([
+        'customer_uuid' => 'required|exists:customers,uuid',
+        'items' => 'required|array|min:1',
+        'items.*.product_uuid' => 'required|exists:products,uuid',
+        'items.*.quantity' => 'required|integer|min:1'
+    ]);
+
+    return $this->orderService->createOrder($validated);
+}
 
     public function getByCustomer(string $customer_uuid): JsonResponse
     {
