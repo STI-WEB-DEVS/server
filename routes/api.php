@@ -21,6 +21,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ]);
 
     Route::apiResources([
-        'customers' => CustomerController::class
+        'customers' => CustomerController::class,
+        'products' => ProductController::class,
+        'orders' => OrderController::class,
+        'items' => ItemOrderController::class
     ]);
 });

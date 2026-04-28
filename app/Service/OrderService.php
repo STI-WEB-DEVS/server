@@ -4,6 +4,9 @@ namespace App\Service;
 
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
+use App\Repository\CustomerRepository;
+use App\Repository\ProductRepository;
+use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
