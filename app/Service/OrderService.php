@@ -2,16 +2,27 @@
 
 namespace App\Service;
 
+// ADD THIS IMPORT:
+use Illuminate\Support\Facades\DB;
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
+use App\Repository\CustomerRepository;
+use App\Repository\ProductRepository;
 
 class OrderService
 {
+    private CustomerRepository $customerRepository;
     private OrderRepository $orderRepository;
+    private ProductRepository $productRepository;
 
-    public function __construct(OrderRepository $orderRepository) 
-    {
+    public function __construct(
+        OrderRepository $orderRepository, 
+        CustomerRepository $customerRepository,
+        ProductRepository $productRepository
+    ) {
         $this->orderRepository = $orderRepository;
+        $this->customerRepository = $customerRepository;
+        $this->productRepository = $productRepository;
     }
 
     public function listOrder(int $perPage = 15)
@@ -20,47 +31,49 @@ class OrderService
         return OrderResource::collection($collection);
     }
 
-public function createOrder(array $payload)
-{
-    return DB::transaction(function () use ($payload) {
+    public function createOrder(array $payload)
+    {
+        return DB::transaction(function () use ($payload) {
 
-        if (empty($payload['customer_uuid']) || empty($payload['items'])) {
-            throw new \InvalidArgumentException('Invalid payload.');
-        }
+            if (empty($payload['customer_uuid']) || empty($payload['items'])) {
+                throw new \InvalidArgumentException('Invalid payload.');
+            }
 
-        $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+            $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
 
-        $order = $this->orderRepository->create([
-            'customer_id' => $customer->id,
-            'total_amount' => 0,
-        ]);
-
-        $total = 0;
-
-        foreach ($payload['items'] as $item) {
-            $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
-
-            $subtotal = $product->price * $item['quantity'];
-            $total += $subtotal;
-
-            $order->items()->create([
-                'product_id' => $product->id,
-                'quantity' => $item['quantity'],
-                'unit_price' => $product->price,
+            $order = $this->orderRepository->create([
+                'customer_id' => $customer->id,
+                'total_amount' => 0,
             ]);
-        }
 
-        $order->update([
-            'total_amount' => $total
-        ]);
+            $total = 0;
 
-        return new OrderResource($order->load('items.product'));
-    });
-}
+            foreach ($payload['items'] as $item) {
+                $product = $this->productRepository->findbyUuid($item['product_uuid']);
+                
+                $subtotal = $product->price * $item['quantity'];
+                $total += $subtotal;
+
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $product->price,
+                ]);
+            }
+
+            $order->update([
+                'total_amount' => $total
+            ]);
+
+            return new OrderResource($order->load('items.product'));
+        });
+    }
+
     public function getOrder(string $uuid)
     {
-        $model = $this->orderRepository->findByUuid($uuid);
-        return new OrderResource($model);
+        $model = $this->customerRepository->findByUuid($uuid);
+        $orders = $model->orders()->with('items')->latest()->get();
+        return OrderResource::collection($orders);
     }
 
     public function getOrderByField(string $field, $value)
