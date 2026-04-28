@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'customer_id',
         'total_amount',
@@ -21,5 +23,10 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

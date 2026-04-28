@@ -40,12 +40,10 @@ class OrderService
         return OrderResource::collection($orders);
     }
 
-
-
-    public function createOrder(int $customerId, array $items)
+    public function createOrder(string $customerUuid, array $items)
     {
-        // Step 1: Verify customer exists
-        $customer = $this->customerRepository->findById($customerId);
+        // Step 1: Verify customer exists by UUID
+        $customer = $this->customerRepository->findByUuid($customerUuid);
         if (!$customer) {
             throw new \Exception("Customer not found");
         }
@@ -53,7 +51,7 @@ class OrderService
         // Step 2: Calculate total
         $total = 0;
         foreach ($items as $item) {
-            $product = $this->productRepository->findById($item['product_id']);
+            $product = $this->productRepository->findByUuid($item['product_uuid']);
             if (!$product) {
                 throw new \Exception("Product not found");
             }
@@ -62,13 +60,13 @@ class OrderService
 
         // Step 3: Create order
         $order = $this->orderRepository->create([
-            'customer_id'   => $customer->id,
-            'total_amount'  => $total,
+            'customer_id'  => $customer->id,
+            'total_amount' => $total,
         ]);
 
         // Step 4: Create order items
         foreach ($items as $item) {
-            $product = $this->productRepository->findById($item['product_id']);
+            $product = $this->productRepository->findByUuid($item['product_uuid']);
 
             $this->orderItemRepository->create([
                 'order_id'   => $order->id,
@@ -76,10 +74,12 @@ class OrderService
                 'quantity'   => $item['quantity'],
                 'unit_price' => $product->price,
             ]);
+        }
+
+        return new OrderResource($order);
     }
 
-    return new OrderResource($order);
-    }
+
 
     public function getOrder(string $uuid)
     {
