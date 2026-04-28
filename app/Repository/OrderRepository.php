@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Models\Order;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Str;
 
 class OrderRepository
 {
@@ -13,54 +13,51 @@ class OrderRepository
         return Order::latest()->paginate($perPage);
     }
 
-    public function create(array $payload)
+    public function create(array $data): Order
+{
+    return Order::create([
+        'customer_id'  => $data['customer_id'], // Now using numeric ID
+        'total_amount' => $data['total_amount'],
+        'status'       => $data['status'] ?? 'pending',
+    ]);
+}
+
+    public function findByUuid(string $uuid): Order
     {
-        return Order::create([
-            'uuid' => $payload['order_uuid'], // Uses the UUID from your input
-            'customer_uuid' => $payload['customer_uuid'] ?? 'default-uuid', 
-            'total_amount' => $payload['total_amount'] ?? 0, 
-            'status' => 'pending',
-        ]);
-    }
-    public function createOrderItem($orderUuid, array $itemData)
-    {
-        return Order::create([
-            'uuid' => Str::uuid(),
-            'order_uuid' => $orderUuid,
-            'product_uuid' => $itemData['product_uuid'],
-            'quantity' => $itemData['quantity'],
-            'price' => $itemData['price'] // snapshot of price at time of order
-        ]);
+        return Order::where('uuid', $uuid)->firstOrFail();
     }
 
-    public function findByUuid(string $uuid)
+    public function findByCustomerUuid(string $customerUuid)
     {
-        return Order::where('customer_uuid', $uuid)
-                ->with('product')
-                ->orderBy('created_at', 'desc')
-                ->get();
+        return Order::whereHas('customer', function ($query) use ($customerUuid) {
+        $query->where('uuid', $customerUuid);
+        })
+        ->with(['items.product'])
+        ->latest()
+        ->get();
     }
 
-    public function findByField(string $field, $value)
+    public function findByField(string $field, $value): Order
     {
         return Order::where($field, $value)->firstOrFail();
     }
 
-    public function update(string $uuid, array $payload)
+    public function update(string $uuid, array $payload): Order
     {
         $model = $this->findByUuid($uuid);
         $model->update($payload);
         return $model;
     }
 
-    public function delete(string $uuid)
+    public function delete(string $uuid): bool
     {
         $model = $this->findByUuid($uuid);
-        return $model->delete();
+        return (bool) $model->delete();
     }
 
-    public function restore(string $uuid)
+    public function restore(string $uuid): Order
     {
+        // Ensure your Order model uses the SoftDeletes trait for this to work
         $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $model->restore();
         return $model;

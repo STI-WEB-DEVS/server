@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\OrderStoreRequest;
 use App\Service\OrderService;
+use App\Http\Resources\OrderResource;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class OrderController extends Controller
 {
@@ -20,10 +21,10 @@ class OrderController extends Controller
         return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
-    public function store(Request $request, OrderService $service)
+    public function store(OrderStoreRequest $request, OrderService $service)
     {
-        $order = $service->store($request->all());
-        return response()->json($order, 201);
+        $order = $service->store($request->validated());
+        return (new OrderResource($order))->response()->setStatusCode(201);
     }
 
     public function show(string $uuid)
@@ -49,6 +50,7 @@ class OrderController extends Controller
 
     public function getByCustomer(string $customerUuid)
     {
-        return $this->orderService->getOrdersByCustomer($customerUuid);
+        $orders = $this->orderService->getOrdersByCustomer($customerUuid);
+        return response()->json($orders);
     }
 }

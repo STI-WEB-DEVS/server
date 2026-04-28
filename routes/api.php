@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::post('/customers/{customer_uuid}/orders', [OrderController::class, 'store']);
-Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'index']);Route::post('/products', [ProductController::class, 'store']);
+Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'getByCustomer']);
+Route::get('orders/customers/{customerUuid}', [OrderController::class, 'getByCustomer']);
+Route::post('/products', [ProductController::class, 'store']);
 Route::post('/customers', [CustomerController::class, 'store']);
 
 Route::middleware('auth:sanctum')->group(function () {
