@@ -5,7 +5,7 @@ namespace App\Repositories;
 use App\Models\Order;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class OrderRepository
+class OrderService
 {
     protected Order $model;
 
@@ -84,4 +84,17 @@ class OrderRepository
         $order->restore();
         return $order;
     }
+
+    public function getOrdersByCustomer(string $customerUuid)
+{
+    // First, find the customer by UUID
+    $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+    
+    // Paginate the orders related to this customer
+    $orders = Order::where('customer_id', $customer->id)
+                   ->latest()
+                   ->paginate();
+
+    return OrderResource::collection($orders);
+}
 }
