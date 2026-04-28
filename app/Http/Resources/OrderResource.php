@@ -2,18 +2,28 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class OrderResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    public function toArray($request)
     {
-        return parent::toArray($request);
+        return [
+            'id'           => $this->id,
+            'uuid'         => $this->uuid,
+            'customers'     => [
+                'id'   => $this->customers->id,
+                'name' => $this->customers->name,
+            ],
+            'total_amount' => $this->total_amount,
+            'items'        => $this->items->map(function ($item) {
+                return [
+                    'product_id' => $item->product_id,
+                    'product'    => $item->product->name,
+                    'quantity'   => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                ];
+            }),
+        ];
     }
 }

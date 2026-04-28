@@ -7,50 +7,22 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class OrderItemsRepository
 {
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function create(array $data): OrderItem
     {
-        return OrderItem::latest()->paginate($perPage);
+        return OrderItem::create($data);
     }
 
-    public function create(array $payload): OrderItem
+    public function findByOrderID(int $orderId)
     {
-        return OrderItem::create($payload);
+        return OrderItem::where('order_id', $orderId) ->get();
     }
 
-    public function findByUuid(string $uuid): OrderItem
+    public function deleteByOrderID(int $orderId): bool
     {
-        return OrderItem::where('uuid', $uuid)->firstOrFail();
+        return OrderItem::where('order_id', $orderId) ->delete();
     }
 
-    public function findByField(string $field, $value): OrderItem
-    {
-        return OrderItem::where($field, $value)->firstOrFail();
-    }
 
-    public function findAllByField(string $field, $value)
-    {
-        return OrderItem::where($field, $value)->get();
-    }
 
-    public function update(string $uuid, array $payload): OrderItem
-    {
-        $model = $this->findByUuid($uuid);
-        $model->update($payload);
 
-        return $model;
-    }
-
-    public function delete(string $uuid): bool
-    {
-        $model = $this->findByUuid($uuid);
-        return (bool) $model->delete();
-    }
-
-    public function restore(string $uuid): OrderItem
-    {
-        $model = OrderItem::withTrashed()->where('uuid', $uuid)->firstOrFail();
-        $model->restore();
-
-        return $model;
-    }
 }

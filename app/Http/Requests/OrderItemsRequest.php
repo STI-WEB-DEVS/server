@@ -22,8 +22,8 @@ class OrderItemsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'order_id' => ['required', 'string'],
-           'product_id' => ['required', 'string'],
+            customer
+           'product_uuid' => ['required', 'string'],
             'quantity' => ['required', 'int'],
             'unit_price' => ['required', 'decimal:2'],  
         ];

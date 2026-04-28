@@ -12,8 +12,14 @@ class Order extends Model
     protected $fillable = [
         'customer_id',
         'total_amount',
+        'uuid',
     ];
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+
+    }
     public function uniqueIds(): array
     {
         return ['uuid'];

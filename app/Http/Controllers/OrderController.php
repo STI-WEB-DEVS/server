@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\OrderRequest;
 use App\Service\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -22,9 +23,14 @@ class OrderController extends Controller
         return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
-    public function store(Request $request)
+    public function store(OrderRequest $request): JsonResponse
     {
-        return $this->orderService->createOrder($request->all());
+        $customerUuid = $request->input('customer_uuid');
+        $items = $request->input('items');
+
+        $order = $this->orderService->createOrder($customerUuid, $items);
+
+        return response()->json($order,201);
     }
 
     public function show(string $uuid)
@@ -32,9 +38,11 @@ class OrderController extends Controller
         return $this->orderService->getOrder($uuid);
     }
 
-    public function update(Request $request, string $uuid)
+    public function update(string $uuid, OrderRequest $request): JsonResponse
     {
-        return $this->orderService->updateOrder($uuid, $request->all());
+        $order = $this->orderService->UpdateOrder($uuid, $request->Validated());
+        return response()->json($order);
+        
     }
 
     public function destroy(string $uuid)
