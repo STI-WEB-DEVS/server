@@ -7,18 +7,30 @@ use Illuminate\Support\Facades\DB;
 
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
+use App\Repository\CustomerRepository;
+use App\Repository\ProductRepository;
 
 class OrderService
 {
+    private CustomerRepository $customerRepository;
+    private OrderRepository $orderRepository;
+    private ProductRepository $productRepository;
+    public function __construct(OrderRepository $orderRepository, CustomerRepository $customerRepository,
+    ProductRepository $productRepository) 
+    {
+        $this->orderRepository = $orderRepository;
+        $this->customerRepository = $customerRepository;
+        $this->productRepository = $productRepository;
+    }
     public function createOrder(array $payload)
-{
+    {
     return DB::transaction(function () use ($payload) {
 
         if (!isset($payload['customer_uuid']) || !isset($payload['items'])) {
             throw new \InvalidArgumentException('Invalid payload.');
         }
-
-        $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+        $customerUuid = $payload['customer_uuid'];
+        $customer = $this->customerRepository->findByUuid($customerUuid);
 
         $order = $this->orderRepository->create([
             'customer_id' => $customer->id,
@@ -29,8 +41,8 @@ class OrderService
 
         foreach ($payload['items'] as $item) {
 
-            $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
-
+            $productUuid = $item['product_uuid'];
+            $product = $this->productRepository->findByUuid($productUuid);
             $quantity = $item['quantity'];
             $unitPrice = $product->price;
 
@@ -52,13 +64,6 @@ class OrderService
     });
 }
 
-    private OrderRepository $orderRepository;
-
-    public function __construct(OrderRepository $orderRepository) 
-    {
-        $this->orderRepository = $orderRepository;
-    }
-
     public function listOrder(int $perPage = 15)
     {
         $collection = $this->orderRepository->paginate($perPage);
@@ -66,11 +71,11 @@ class OrderService
     }
 
 
-
     public function getOrder(string $uuid)
     {
-        $model = $this->orderRepository->findByUuid($uuid);
-        return new OrderResource($model);
+        $model = $this->customerRepository->findByUuid($uuid);
+        $orders = $model->orders()->with('items')->latest()->get();
+        return OrderResource::collection($orders);
     }
 
     public function getOrderByField(string $field, $value)
