@@ -26,14 +26,12 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-
-
     public function store(OrderStoreRequest $request): JsonResponse
     {
-        $customerId = $request->input('customer_id');
-        $items      = $request->input('items');
+        $customerUuid = $request->input('customer_uuid');
+        $items        = $request->input('items');
 
-        $order = $this->orderService->createOrder($customerId, $items);
+        $order = $this->orderService->createOrder($customerUuid, $items);
 
         return response()->json($order, 201);
     }
