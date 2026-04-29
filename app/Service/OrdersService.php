@@ -2,88 +2,101 @@
 
 namespace App\Service;
 
-use App\Repository\OrdersRepository;
-use App\Http\Resources\OrdersResource;
+// ADD THIS IMPORT:
+use Illuminate\Support\Facades\DB;
+use App\Repository\OrderRepository;
+use App\Http\Resources\OrderResource;
+use App\Repository\CustomerRepository;
+use App\Repository\ProductRepository;
 
-class OrdersService
+class OrderService
 {
-    private OrdersRepository $ordersRepository;
+    private CustomerRepository $customerRepository;
+    private OrderRepository $orderRepository;
+    private ProductRepository $productRepository;
 
-    public function __construct(OrdersRepository $ordersRepository) 
-    {
-        $this->ordersRepository = $ordersRepository;
+    public function __construct(
+        OrderRepository $orderRepository, 
+        CustomerRepository $customerRepository,
+        ProductRepository $productRepository
+    ) {
+        $this->orderRepository = $orderRepository;
+        $this->customerRepository = $customerRepository;
+        $this->productRepository = $productRepository;
     }
 
-    public function listOrders(int $perPage = 15)
+    public function listOrder(int $perPage = 15)
     {
-        $collection = $this->ordersRepository->paginate($perPage);
-        return OrdersResource::collection($collection);
+        $collection = $this->orderRepository->paginate($perPage);
+        return OrderResource::collection($collection);
     }
 
-    public function createOrders(array $payload)
+    public function createOrder(array $payload)
     {
-        $model = $this->ordersRepository->create($payload);
-        return new OrdersResource($model);
+        return DB::transaction(function () use ($payload) {
+
+            if (empty($payload['customer_uuid']) || empty($payload['items'])) {
+                throw new \InvalidArgumentException('Invalid payload.');
+            }
+
+            $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
+
+            $order = $this->orderRepository->create([
+                'customer_id' => $customer->id,
+                'total_amount' => 0,
+            ]);
+
+            $total = 0;
+
+            foreach ($payload['items'] as $item) {
+                $product = $this->productRepository->findbyUuid($item['product_uuid']);
+                
+                $subtotal = $product->price * $item['quantity'];
+                $total += $subtotal;
+
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $product->price,
+                ]);
+            }
+
+            $order->update([
+                'total_amount' => $total
+            ]);
+
+            return new OrderResource($order->load('items.product'));
+        });
     }
 
-    public function getOrders(string $uuid)
+    public function getOrder(string $uuid)
     {
-        $model = $this->ordersRepository->findByUuid($uuid);
-        return new OrdersResource($model);
+        $model = $this->customerRepository->findByUuid($uuid);
+        $orders = $model->orders()->with('items')->latest()->get();
+        return OrderResource::collection($orders);
     }
 
-    public function getOrdersByField(string $field, $value)
+    public function getOrderByField(string $field, $value)
     {
-        $model = $this->ordersRepository->findByField($field, $value);
-        return new OrdersResource($model);
+        $model = $this->orderRepository->findByField($field, $value);
+        return new OrderResource($model);
     }
 
-    public function updateOrders(string $uuid, array $payload)
+    public function updateOrder(string $uuid, array $payload)
     {
-        $model = $this->ordersRepository->update($uuid, $payload);
-        return new OrdersResource($model);
+        $model = $this->orderRepository->update($uuid, $payload);
+        return new OrderResource($model);
     }
 
-    public function deleteOrders(string $uuid)
+    public function deleteOrder(string $uuid)
     {
-        $this->ordersRepository->delete($uuid);
+        $this->orderRepository->delete($uuid);
         return true;
     }
 
-    public function restoreOrders(string $uuid)
+    public function restoreOrder(string $uuid)
     {
-        $model = $this->ordersRepository->restore($uuid);
-        return new OrdersResource($model);
-    }
-    public function getCustomerOrders(string $uuid)
-    {
-        $customer = Customer::where('uuid', $uuid)->firstOrFail();
-
-        // ✅ This is where your line goes
-        $orders = $customer->orders()->with(['items.product'])->get();
-
-        return [
-            'customer' => [
-                'uuid' => $customer->uuid,
-                'name' => $customer->name,
-                'email' => $customer->email,
-            ],
-            'orders' => $orders->map(function ($order) {
-                return [
-                    'uuid' => $order->uuid,
-                    'total_amount' => $order->total_amount,
-                    'created_at' => $order->created_at,
-                    'items' => $order->items->map(function ($item) {
-                        return [
-                            'product_uuid' => $item->product->uuid,
-                            'product_name' => $item->product->name,
-                            'quantity' => $item->quantity,
-                            'unit_price' => $item->unit_price,
-                            'subtotal' => $item->quantity * $item->unit_price,
-                        ];
-                    }),
-                ];
-            }),
-        ];
+        $model = $this->orderRepository->restore($uuid);
+        return new OrderResource($model);
     }
 }

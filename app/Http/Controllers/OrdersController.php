@@ -2,47 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Service\OrdersService;
+use App\Service\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
-class OrdersController extends Controller
+class OrderController extends Controller
 {
-    private OrdersService $ordersService;
+    private OrderService $orderService;
 
-    public function __construct(OrdersService $ordersService)
+    public function __construct(OrderService $orderService)
     {
-        $this->ordersService = $ordersService;
+        $this->orderService = $orderService;
     }
 
     public function index(Request $request)
     {
-        return $this->ordersService->listOrders($request->input('per_page', 15));
+        return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
     public function store(Request $request)
     {
-        return $this->ordersService->createOrders($request->all());
-    }
+    $validated = $request->validate([
+    'customer_uuid' => ['required', 'uuid'],
+    'items' => ['required', 'array', 'min:1'],
+    'items.*.product_uuid' => ['required', 'uuid'],
+    'items.*.quantity' => ['required', 'integer', 'min:1'],
+]);
+
+return $this->orderService->createOrder($validated);    }
 
     public function show(string $uuid)
     {
-        return $this->ordersService->getOrders($uuid);
+        return $this->orderService->getOrder($uuid);
     }
 
     public function update(Request $request, string $uuid)
     {
-        return $this->ordersService->updateOrders($uuid, $request->all());
+        return $this->orderService->updateOrder($uuid, $request->all());
     }
 
     public function destroy(string $uuid)
     {
-        $this->ordersService->deleteOrders($uuid);
+        $this->orderService->deleteOrder($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
     
     public function restore(string $uuid)
     {
-        return $this->ordersService->restoreOrders($uuid);
+        return $this->orderService->restoreOrder($uuid);
     }
 }
