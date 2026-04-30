@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Models\Customer;
+use App\Models\Order;
 
 class OrderRepository
 {
@@ -21,31 +21,22 @@ class OrderRepository
         return Order::where('uuid', $uuid)->first();
     }
 
-    public function findByField(string $field, $value)
+    public function getByCustomerId(int $customerId, int $perPage = 15)
     {
-        return Order::where($field, $value)->first();
+        return Order::where('customer_id', $customerId)->latest()->paginate($perPage);
     }
 
     public function update(string $uuid, array $payload)
     {
         $model = $this->findByUuid($uuid);
         $model->update($payload);
-
         return $model;
     }
 
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
-
         return $model->delete();
     }
-
-    public function restore(string $uuid)
-    {
-        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
-        $model->restore();
-
-        return $model;
-    }
 }
+

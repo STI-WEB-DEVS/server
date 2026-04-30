@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\OrderStoreRequest;
 use App\Service\OrderService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class OrderController extends Controller
 {
@@ -17,32 +17,33 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        return $this->orderService->listProduct($request->input('per_page', 15));
+        return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
-    public function store(Request $request)
+    public function store(OrderStoreRequest $request)
     {
-        return $this->orderService->createProduct($request->all());
+        return $this->orderService->createOrder($request->validated());
     }
 
     public function show(string $uuid)
     {
-        return $this->orderService->getProduct($uuid);
+        return $this->orderService->getOrder($uuid);
     }
 
     public function update(Request $request, string $uuid)
     {
-        return $this->orderService->updateProduct($uuid, $request->all());
+        return $this->orderService->updateOrder($uuid, $request->all());
     }
 
     public function destroy(string $uuid)
     {
-        $this->orderService->deleteProduct($uuid);
-        return response()->json(['message' => 'Deleted successfully'], 200);
+        $this->orderService->deleteOrder($uuid);
+        return response()->json(['message' => 'Order deleted successfully'], 200);
     }
-    
-    public function restore(string $uuid)
+
+    public function customerOrders(Request $request, string $customerUuid)
     {
-        return $this->orderService->restoreProduct($uuid);
+        return $this->orderService->getOrdersByCustomerUuid($customerUuid, $request->input('per_page', 15));
     }
 }
+

@@ -28,5 +28,5 @@ Route::middleware('auth:sanctum')->group(function () {
         'orders' => OrderController::class
     ]);
 
-    Route::get('/customers/{id/orders', [CustomerController::class, 'orders']);
+    Route::get('/customers/{customerUuid}/orders', [OrderController::class, 'customerOrders']);
 });
