@@ -15,59 +15,38 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
-    /**
-     * Display a listing of orders.
-     */
     public function index(Request $request)
     {
         return $this->orderService->listOrder($request->input('per_page', 15));
     }
-
-    /**
-     * Store a newly created order in storage.
-     */
+    
     public function store(Request $request) 
-    {
-        $validated = $request->validate([
-            'customer_id' => 'required|string', // The UUID string
-            'items' => 'required|array',
-            'items.*.product_id' => 'required|string',
-            'items.*.quantity' => 'required|integer|min:1',
-    ]);
-
-        return $this->orderService->createOrder($validated);
+    { 
+    $validated = $request->validate([
+    'customer_uuid' => 'required|uuid',
+    'items' => 'required|array|min:1', 
+    'items.*.product_uuid' => 'required|uuid',
+    'items.*.quantity' => 
+    'required|integer|min:1', ]); 
+    return $this->orderService->createOrder($validated); 
     }
 
-    /**
-     * Display the specified order.
-     */
     public function show(string $uuid)
     {
         return $this->orderService->getOrder($uuid);
     }
 
-    /**
-     * Update the specified order in storage.
-     */
     public function update(Request $request, string $uuid)
     {
-        // Note: You might want to create an OrderUpdateRequest for specific validation
         return $this->orderService->updateOrder($uuid, $request->all());
     }
 
-    /**
-     * Remove the specified order from storage.
-     */
     public function destroy(string $uuid)
     {
         $this->orderService->deleteOrder($uuid);
-
-        return response()->json(['message' => 'Order deleted successfully'], 200);
+        return response()->json(['message' => 'Deleted successfully'], 200);
     }
-
-    /**
-     * Restore a soft-deleted order.
-     */
+    
     public function restore(string $uuid)
     {
         return $this->orderService->restoreOrder($uuid);

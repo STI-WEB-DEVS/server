@@ -1,27 +1,68 @@
 <?php
 
 namespace App\Service;
+use App\Models\Product;
+use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
 
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
 use App\Repository\CustomerRepository;
 use App\Repository\ProductRepository;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class OrderService
 {
-
-    private OrderRepository $orderRepository;
     private CustomerRepository $customerRepository;
+    private OrderRepository $orderRepository;
     private ProductRepository $productRepository;
-
-    public function __construct(OrderRepository $orderRepository,CustomerRepository $customerRepository ,ProductRepository $productRepository  )
+    public function __construct(OrderRepository $orderRepository, CustomerRepository $customerRepository,
+    ProductRepository $productRepository) 
     {
         $this->orderRepository = $orderRepository;
         $this->customerRepository = $customerRepository;
         $this->productRepository = $productRepository;
     }
+    public function createOrder(array $payload)
+    {
+    return DB::transaction(function () use ($payload) {
+
+        if (!isset($payload['customer_uuid']) || !isset($payload['items'])) {
+            throw new \InvalidArgumentException('Invalid payload.');
+        }
+        $customerUuid = $payload['customer_uuid'];
+        $customer = $this->customerRepository->findByUuid($customerUuid);
+
+        $order = $this->orderRepository->create([
+            'customer_id' => $customer->id,
+            'total_amount' => 0,
+        ]);
+
+        $total = 0;
+
+        foreach ($payload['items'] as $item) {
+
+            $productUuid = $item['product_uuid'];
+            $product = $this->productRepository->findByUuid($productUuid);
+            $quantity = $item['quantity'];
+            $unitPrice = $product->price;
+
+            $subtotal = $unitPrice * $quantity;
+            $total += $subtotal;
+
+            $order->items()->create([
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+            ]);
+        }
+
+        $order->update([
+            'total_amount' => $total
+        ]);
+
+        return new OrderResource($order->load('items'));
+    });
+}
 
     public function listOrder(int $perPage = 15)
     {
@@ -29,95 +70,12 @@ class OrderService
         return OrderResource::collection($collection);
     }
 
-    public function createOrder(array $payload)
-
-    {
-
-    return DB::transaction(function () use ($payload) {
-
-
-
-        if (!isset($payload['customer_uuid']) || !isset($payload['items'])) {
-
-            throw new \InvalidArgumentException('Invalid payload.');
-
-        }
-
-        $customerUuid = $payload['customer_uuid'];
-
-        $customer = $this->customerRepository->findByUuid($customerUuid);
-
-
-
-        $order = $this->orderRepository->create([
-            'customer_id' => $customer->id, // Change 'customer_uuid' to 'customer_id'
-            'total_amount' => 0,
-        ]);
-
-
-        $total = 0;
-
-
-
-        foreach ($payload['items'] as $item) {
-
-
-
-            $productUuid = $item['product_uuid'];
-
-            $product = $this->productRepository->findByUuid($productUuid);
-
-            $quantity = $item['quantity'];
-
-            $unitPrice = $product->price;
-
-
-
-            $subtotal = $unitPrice * $quantity;
-
-            $total += $subtotal;
-
-
-
-            $order->items()->create([
-
-                'product_id' => $product->id,
-
-                'quantity' => $quantity,
-
-                'unit_price' => $unitPrice,
-
-            ]);
-
-        }
-
-
-
-        $order->update([
-
-            'total_amount' => $total
-
-        ]);
-
-
-
-        return new OrderResource($order->load('items'));
-
-    });
-
-}
-
 
     public function getOrder(string $uuid)
-
     {
-
         $model = $this->customerRepository->findByUuid($uuid);
-
         $orders = $model->orders()->with('items')->latest()->get();
-
         return OrderResource::collection($orders);
-
     }
 
     public function getOrderByField(string $field, $value)
