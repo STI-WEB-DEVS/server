@@ -6,7 +6,7 @@ use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\OrderItem;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
 class OrdersRepository
 {
@@ -15,34 +15,47 @@ class OrdersRepository
         return Order::latest()->paginate($perPage);
     }
 
+    /**
+     * Create a bulk order (multiple items) with transaction safety.
+     */
     public function create(array $payload)
     {
-        // 1. Resolve customer UUID to numeric id
-        // This fixes the "Undefined array key" error by using 'customer_uuid'
-        $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+        return DB::transaction(function () use ($payload) {
+            // 1. Identify the Customer
+            $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+            
+            // 2. Initialize the Order with a zero total
+            $order = Order::create([
+                'customer_id'  => $customer->id,
+                'total_amount' => 0, 
+            ]);
 
-        // 2. Resolve product UUID to numeric id
-        $product = Product::where('uuid', $payload['product_uuid'])->firstOrFail();
+            $runningTotal = 0;
 
-        // 3. Calculate total based on the single product and quantity
-        $total = $product->price * $payload['quantity'];
+            // 3. Loop through the "items" array from your Hoppscotch request
+            foreach ($payload['items'] as $item) {
+                // Find product and lock it to prevent simultaneous data errors
+                $product = Product::where('uuid', $item['product_uuid'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        // 4. Create the main Order
-        $order = Order::create([
-            'customer_id'  => $customer->id,
-            'total_amount' => $total,
-        ]);
+                $lineTotal = $product->price * $item['quantity'];
+                $runningTotal += $lineTotal;
 
-        // 5. Create the Order Item entry
-        OrderItem::create([
-            'order_id'   => $order->id,
-            'product_id' => $product->id,
-            'quantity'   => $payload['quantity'],
-            'unit_price' => $product->price,
-        ]);
+                // Create the individual line item
+                OrderItem::create([
+                    'order_id'   => $order->id,
+                    'product_id' => $product->id,
+                    'quantity'   => $item['quantity'],
+                    'unit_price' => $product->price,
+                ]);
+            }
 
-        // Return the order with its items and product details for the API response
-        return $order->load('items.product');
+            // 4. Update the final total after all items are added
+            $order->update(['total_amount' => $runningTotal]);
+
+            return $order->load('items.product');
+        });
     }
 
     public function findByUuid(string $uuid)

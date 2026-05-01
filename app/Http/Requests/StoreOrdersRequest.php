@@ -11,7 +11,7 @@ class StoreOrdersRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // CHANGE THIS TO TRUE so you are allowed to send the data
+        // Keep this as true so your request isn't blocked
         return true; 
     }
 
@@ -21,10 +21,15 @@ class StoreOrdersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // This is your Payload Design
+            // Validate the customer exists
             'customer_uuid' => 'required|uuid|exists:customers,uuid',
-            'product_uuid'  => 'required|uuid|exists:products,uuid',
-            'quantity'      => 'required|integer|min:1',
+            
+            // Validate that "items" is sent as a list/array
+            'items' => 'required|array|min:1',
+            
+            // The items.* syntax validates every object inside the items array
+            'items.*.product_uuid' => 'required|uuid|exists:products,uuid',
+            'items.*.quantity'     => 'required|integer|min:1',
         ];
     }
 }
