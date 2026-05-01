@@ -27,7 +27,7 @@ class AuthController extends Controller
 
     $user = \Illuminate\Support\Facades\Auth::user();
 
-    $token = $user->createToken('auth_token')->plainTextToken;
+    $token = $user->createToken($user->email)->plainTextToken;
 
     return response()->json([
         'token' => $token,
