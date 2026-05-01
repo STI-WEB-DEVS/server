@@ -14,7 +14,7 @@ class OrderService
     private ProductRepository $productRepository;
     private CustomerRepository $customerRepository;
 
-    public function __construct(OrderRepository $orderRepository, ProductRepository $productRepository, CustomerRepository $customerRepository) 
+    public function __construct(OrderRepository $orderRepository, ProductRepository $productRepository, CustomerRepository $customerRepository)
     {
         $this->orderRepository = $orderRepository;
         $this->productRepository = $productRepository;
@@ -34,17 +34,18 @@ class OrderService
             $orders = null;
             $total_amount = 0;
             $customer_uuid = $payload['customer_uuid'];
+
+            // CUSTOMER ID
+            $customer = $this->customerRepository->retrieveCustomer($customer_uuid);
+
             foreach ($payload['orders'] as $order) {
                 //PAYLOADS
                 $quantity = $order['quantity'];
                 $product_uuid = $order['product_uuid'];
 
-                // CUSTOMER ID
-                $customer = $this->customerRepository->retrieveCustomer($customer_uuid);
-
-
                 //CREATE PRODUCT
                 $product = $this->productRepository->findByUuid($product_uuid);
+
                 $price = $product->price;
                 $product_id = $product->id;
                 $total = $price * $quantity;
@@ -52,38 +53,35 @@ class OrderService
                 $orderData = [
                     'customer_id' =>  $customer->id,
                 ];
-        
 
-                if (!$orders){
+
+                if (!$orders) {
                     $total_amount = $total;
                     $orders = $this->orderRepository->create($orderData);
                 } else {
                     $total_amount = $total + $total_amount;
                 }
-                
-                DB::insert('insert into order_items (order_id, product_id, quantity, unit_price)
-                    values (?, ?, ?, ?)', [$orders->id,  $product_id, $quantity, $price]);
 
+                // ORDER ITEM
+                $orders->items()->create([
+                    'product_id' => $product_id,
+                    'quantity' => $quantity,
+                    'unit_price' => $price,
+                ]);
             };
+
             $orders->total_amount = $total_amount;
             $orders->save();
-          
-            return new OrderResource($orders);
-            });
-        }
-        
 
-      
+            return new OrderResource($orders);
+        });
+    }
+
+
+
     public function getOrder(string $uuid)
     {
-        // $customer = $this->customerRepository->findByUuid($uuid);
-        // // $model = $this->getOrderByField('customer_id', $customer->u);
-        // $down = DB::select('select * from order_items WHERE order_id = (?)', [$model->id]);
-        // $data = [
-        //     'order' => $model,
-        //     'order_item' => $down
-        // ];
-        // return  $data;
+        return $this->orderRepository->findByUuid($uuid);
     }
 
     public function getOrderByField(string $field, $value)

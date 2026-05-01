@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Models\Order;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
 class OrderRepository
 {

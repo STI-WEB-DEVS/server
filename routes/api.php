@@ -4,8 +4,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\CustomerOrderController;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,7 +24,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResources([
         'customers' => CustomerController::class,
-        'product' =>ProductController::Class,
-        'order' =>OrderController::Class
-   ]);
-}); 
+        'product' => ProductController::class,
+        'order' => OrderController::class
+    ]);
+
+    Route::get('/customers/{id}/orders', [CustomerController::class, 'customerOrders']);
+});

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Service\CustomerService;
 use App\Http\Requests\CustomerStoreRequest;
 use Illuminate\Http\Request;
@@ -13,6 +14,11 @@ class CustomerController extends Controller
     public function __construct(CustomerService $customerService)
     {
         $this->customerService = $customerService;
+    }
+
+    public function customerOrders(string $uuid)
+    {
+        return $this->customerService->getCustomerOrders($uuid);
     }
 
     /**
@@ -43,14 +49,14 @@ class CustomerController extends Controller
         return $this->customerService->retrieveCustomer($id);
     }
 
+
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
         //
-        return $this->customerService->updateCustomer($request->all(),$id);
-        
+        return $this->customerService->updateCustomer($request->all(), $id);
     }
 
     /**

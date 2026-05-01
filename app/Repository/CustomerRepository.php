@@ -6,40 +6,52 @@ use App\Models\Customer;
 
 class CustomerRepository
 {
-    public function createCustomer($payload){
+    public function createCustomer($payload)
+    {
         return Customer::create($payload);
     }
 
 
-public function getAllCustomers(){
-    return Customer::latest()->paginate(5);
-}
-
-public function findByUuid(string $uuid)
-{
-    return Customer::where('uuid', $uuid)->firstOrFail();
-}
-
-    
- 
-    public function retrieveCustomer($payload){
-
-        return Customer::where('uuid',$payload)->first();
+    public function getAllCustomers()
+    {
+        return Customer::latest()->paginate(5);
     }
- 
-    public function updateCustomer($payload,$id){
+
+    public function findByUuid(string $uuid)
+    {
+        return Customer::where('uuid', $uuid)->firstOrFail();
+    }
+
+
+
+    public function retrieveCustomer($payload)
+    {
+
+        return Customer::where('uuid', $payload)->first();
+    }
+
+    public function updateCustomer($payload, $id)
+    {
 
         $customer = $this->retrieveCustomer($id);
         $customer->update($payload);
         $customer->save();
         return $customer;
     }
-    public function deleteCustomer($id){
+    public function deleteCustomer($id)
+    {
         $customer = $this->retrieveCustomer($id);
         $customer->delete();
         return response()->json([
             'message' => "Customer has been deleted"
         ], 200);
         return "Customer has been deleted";
+    }
+
+    public function getCustomerOrders(string $uuid)
+    {
+        return   Customer::where('uuid', $uuid)
+            ->with('orders.items.product')
+            ->first();
     }
 }
