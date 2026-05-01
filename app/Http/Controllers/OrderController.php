@@ -15,14 +15,23 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
-    public function index(Request $request)
-    {
-        return $this->orderService->listOrder($request->input('per_page', 15));
-    }
+ // app/Http/Controllers/OrderController.php
 
-    public function store(Request $request)
-    {
-        return $this->orderService->createOrder($request->all());
+public function indexByCustomer($customerUuid)
+{
+    // Calling the method we just added to your OrderService
+    return $this->orderService->getOrdersByCustomer($customerUuid);
+}
+    
+    public function store(Request $request) 
+    { 
+    $validated = $request->validate([
+    'customer_uuid' => 'required|uuid',
+    'items' => 'required|array|min:1', 
+    'items.*.product_uuid' => 'required|uuid',
+    'items.*.quantity' => 
+    'required|integer|min:1', ]); 
+    return $this->orderService->createOrder($validated); 
     }
 
     public function show(string $uuid)
@@ -45,12 +54,4 @@ class OrderController extends Controller
     {
         return $this->orderService->restoreOrder($uuid);
     }
-    /**
- * Get all orders for a specific customer.
- * GET /api/customers/{customer_uuid}/orders
- */
-public function customerOrders(string $customerUuid)
-{
-    return $this->orderService->getOrdersByCustomer($customerUuid);
-}
 }

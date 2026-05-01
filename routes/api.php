@@ -11,7 +11,7 @@ use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::get('/customers/{uuid}/orders', [OrderController::class, 'indexByCustomer']);
 
 
 
@@ -30,6 +30,5 @@ Route::middleware('auth:sanctum')->group(function () {
          'orders' =>   OrderController::class
     ]);
 
-// Endpoint: GET /api/customers/{customer_uuid}/orders
-Route::get('customers/{customer_uuid}/orders', [OrderController::class, 'indexByCustomer']);
+
 });

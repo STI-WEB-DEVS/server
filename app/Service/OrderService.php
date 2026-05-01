@@ -1,100 +1,119 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Service;
 
 use App\Models\Order;
-use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\Product;
+use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
+use App\Repository\OrderRepository;
+use App\Repository\CustomerRepository;
+use App\Repository\ProductRepository;
+use App\Http\Resources\OrderResource;
 
 class OrderService
 {
-    protected Order $model;
+    private CustomerRepository $customerRepository;
+    private OrderRepository $orderRepository;
+    private ProductRepository $productRepository;
 
-    public function __construct(Order $model)
-    {
-        $this->model = $model;
+    public function __construct(
+        OrderRepository $orderRepository, 
+        CustomerRepository $customerRepository,
+        ProductRepository $productRepository
+    ) {
+        $this->orderRepository = $orderRepository;
+        $this->customerRepository = $customerRepository;
+        $this->productRepository = $productRepository;
     }
 
-    /**
-     * Get paginated orders
-     */
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function createOrder(array $payload)
     {
-        return $this->model->newQuery()
-            ->latest()
-            ->paginate($perPage);
+        return DB::transaction(function () use ($payload) {
+
+            if (!isset($payload['customer_uuid']) || !isset($payload['items'])) {
+                throw new \InvalidArgumentException('Invalid payload.');
+            }
+            
+            $customerUuid = $payload['customer_uuid'];
+            $customer = $this->customerRepository->findByUuid($customerUuid);
+
+            $order = $this->orderRepository->create([
+                'customer_id' => $customer->id,
+                'total_amount' => 0,
+            ]);
+
+            $total = 0;
+
+            foreach ($payload['items'] as $item) {
+                $productUuid = $item['product_uuid'];
+                $product = $this->productRepository->findByUuid($productUuid);
+                $quantity = $item['quantity'];
+                $unitPrice = $product->price;
+
+                $subtotal = $unitPrice * $quantity;
+                $total += $subtotal;
+
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                ]);
+            }
+
+            $order->update([
+                'total_amount' => $total
+            ]);
+
+            return new OrderResource($order->load('items'));
+        });
     }
 
-    /**
-     * Create a new order
-     */
-    public function create(array $payload): Order
+    public function listOrder(int $perPage = 15)
     {
-        return $this->model->newQuery()->create($payload);
+        $collection = $this->orderRepository->paginate($perPage);
+        return OrderResource::collection($collection);
     }
 
-    /**
-     * Find an order by UUID
-     */
-    public function findByUuid(string $uuid): ?Order
+    public function getOrder(string $uuid)
     {
-        return $this->model->newQuery()
-            ->where('uuid', $uuid)
-            ->firstOrFail();
+        $model = $this->customerRepository->findByUuid($uuid);
+        $orders = $model->orders()->with('items')->latest()->get();
+        return OrderResource::collection($orders);
     }
 
-    /**
-     * Find by a custom field
-     */
-    public function findByField(string $field, $value): ?Order
+    public function getOrderByField(string $field, $value)
     {
-        return $this->model->newQuery()
-            ->where($field, $value)
-            ->firstOrFail();
+        $model = $this->orderRepository->findByField($field, $value);
+        return new OrderResource($model);
     }
 
-    /**
-     * Update an order by UUID
-     */
-    public function update(string $uuid, array $payload): Order
+    public function updateOrder(string $uuid, array $payload)
     {
-        $order = $this->findByUuid($uuid);
-        $order->update($payload);
-        return $order;
+        $model = $this->orderRepository->update($uuid, $payload);
+        return new OrderResource($model);
     }
 
-    /**
-     * Delete an order (supports Soft Deletes if enabled in Model)
-     */
-    public function delete(string $uuid): bool
+    public function deleteOrder(string $uuid)
     {
-        $order = $this->findByUuid($uuid);
-        return $order->delete();
+        $this->orderRepository->delete($uuid);
+        return true;
     }
 
-    /**
-     * Restore a soft-deleted order
-     */
-    public function restore(string $uuid): Order
+    public function restoreOrder(string $uuid)
     {
-        $order = $this->model->newQuery()
-            ->withTrashed()
-            ->where('uuid', $uuid)
-            ->firstOrFail();
-
-        $order->restore();
-        return $order;
+        $model = $this->orderRepository->restore($uuid);
+        return new OrderResource($model);
     }
 
     public function getOrdersByCustomer(string $customerUuid)
-{
-    // First, find the customer by UUID
-    $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
-    
-    // Paginate the orders related to this customer
-    $orders = Order::where('customer_id', $customer->id)
-                   ->latest()
-                   ->paginate();
+    {
+        $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+        
+        $orders = Order::where('customer_id', $customer->id)
+                       ->latest()
+                       ->paginate();
 
-    return OrderResource::collection($orders);
-}
+        return OrderResource::collection($orders);
+    }
 }

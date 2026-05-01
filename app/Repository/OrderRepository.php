@@ -1,70 +1,66 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository; // Note: Ensure this matches your folder structure!
 
 use App\Models\Order;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class OrderRepository
 {
-    /**
-     * Get paginated orders.
-     */
-    public function paginate(int $perPage = 15)
+    protected Order $model;
+
+    public function __construct(Order $model)
     {
-        return Order::latest()->paginate($perPage);
+        $this->model = $model;
     }
 
-    /**
-     * Create a new order record.
-     */
-    public function create(array $payload)
+    public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return Order::create($payload);
+        return $this->model->newQuery()
+            ->latest()
+            ->paginate($perPage);
     }
 
-    /**
-     * Find a specific order by its UUID.
-     */
-    public function findByUuid(string $uuid)
+    public function create(array $payload): Order
     {
-        return Order::where('uuid', $uuid)->firstOrFail();
+        return $this->model->newQuery()->create($payload);
     }
 
-    /**
-     * Find an order by a specific column and value.
-     */
-    public function findByField(string $field, $value)
+    public function findByUuid(string $uuid): ?Order
     {
-        return Order::where($field, $value)->firstOrFail();
+        return $this->model->newQuery()
+            ->where('uuid', $uuid)
+            ->firstOrFail();
     }
 
-    /**
-     * Update an existing order by UUID.
-     */
-    public function update(string $uuid, array $payload)
+    public function findByField(string $field, $value): ?Order
     {
-        $model = $this->findByUuid($uuid);
-        $model->update($payload);
-        return $model;
+        return $this->model->newQuery()
+            ->where($field, $value)
+            ->firstOrFail();
     }
 
-    /**
-     * Delete an order by UUID.
-     */
-    public function delete(string $uuid)
+    public function update(string $uuid, array $payload): Order
     {
-        $model = $this->findByUuid($uuid);
-        return $model->delete();
+        $order = $this->findByUuid($uuid);
+        $order->update($payload);
+        return $order;
     }
 
-    /**
-     * Restore a soft-deleted order by UUID.
-     */
-    public function restore(string $uuid)
+    public function delete(string $uuid): bool
     {
-        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
-        $model->restore();
-        return $model;
+        $order = $this->findByUuid($uuid);
+        return $order->delete();
+    }
+
+    public function restore(string $uuid): Order
+    {
+        $order = $this->model->newQuery()
+            ->withTrashed()
+            ->where('uuid', $uuid)
+            ->firstOrFail();
+
+        $order->restore();
+        return $order;
     }
 }
