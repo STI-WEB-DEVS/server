@@ -37,6 +37,7 @@ class ProductRepository
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
+        $model->orderItems()->delete();
         return $model->delete();
     }
 
