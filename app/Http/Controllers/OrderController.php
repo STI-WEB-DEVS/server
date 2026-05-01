@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Request\StoreOrderRequest;
 use App\Service\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -13,11 +14,6 @@ class OrderController extends Controller
     public function __construct(OrderService $orderService)
     {
         $this->orderService = $orderService;
-    }
-
-    public function getCustomerOrders(string $customer_id)
-    {
-        return $this->orderService->getOrdersByCustomer($customer_id);
     }
 
     public function index(Request $request)
