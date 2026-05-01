@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Request\StoreOrderRequest;
 use App\Service\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -25,9 +26,9 @@ class OrderController extends Controller
         return $this->orderService->createOrder($request->all());
     }
 
-    public function show(string $uuid)
+    public function show(string $customer_uuid)
     {
-        return $this->orderService->getOrder($uuid);
+    return $this->orderService->getOrder($customer_uuid);
     }
 
     public function update(Request $request, string $uuid)

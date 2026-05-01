@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Models\Order;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
 class OrderRepository
 {
@@ -27,6 +28,14 @@ class OrderRepository
         return Order::where($field, $value)->firstOrFail();
     }
 
+        public function findByCustomerUuid(string $customerUuid)
+    {
+        return Order::with('items')
+            ->where('customer_id', $customerUuid) 
+            ->latest()
+            ->get();
+    }
+    
     public function update(string $uuid, array $payload)
     {
         $model = $this->findByUuid($uuid);

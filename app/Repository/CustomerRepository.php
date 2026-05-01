@@ -15,6 +15,11 @@ class CustomerRepository
         return Customer::where('uuid', $uuid)->firstOrFail();
     }
 
+    public function findByUuid(string $uuid)
+    {
+        return Customer::where('uuid', $uuid)->first();
+    }
+
     public function create(array $data) {
         return Customer::create($data);
     }
