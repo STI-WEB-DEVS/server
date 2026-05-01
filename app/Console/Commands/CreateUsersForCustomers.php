@@ -45,13 +45,15 @@ class CreateUsersForCustomers extends Command
                         }
  
                         // No user exists, create one
-                        User::create([
+                        $user = User::create([
                             'company_id' => null,
                             'customer_id' => $customer->id,
                             'name' => $customer->name,
                             'email' => $customer->email,
                             'password' => 'password',
                         ]);
+
+                        $user->assignRole('customer');
  
                         $this->info("Created user: {$customer->email}");
                     }

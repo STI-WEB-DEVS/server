@@ -29,7 +29,18 @@ class CustomerController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:customers,email',
         ]);
+        
         $customer = Customer::create($validated);
+
+        // Automatically create a user account and assign the role correctly
+        $user = \App\Models\User::create([
+            'customer_id' => $customer->id,
+            'name' => $customer->name,
+            'email' => $customer->email,
+            'password' => bcrypt('password'), // Default password
+        ]);
+
+        $user->assignRole('customer');
 
         return response()->json($customer, 201);
     }
@@ -53,6 +64,16 @@ class CustomerController extends Controller
         ]);
 
         $customer->update($validated);
+
+        // Automatically sync the user account details and roles
+        $user = \App\Models\User::where('customer_id', $customer->id)->first();
+        if ($user) {
+            $user->update([
+                'name' => $customer->name,
+                'email' => $customer->email,
+            ]);
+            $user->syncRoles(['customer']);
+        }
 
         return response()->json($customer);
     }
