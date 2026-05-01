@@ -34,8 +34,10 @@ class UserService
         $token = $user->createToken($user->email)->plainTextToken;
 
         return response()->json([
-            'user' => new UserResource($user),
             'token' => $token,
+            'uuid'  => $user->uuid,
+            'role' => $user->getRoleNames()->toArray(), // remove if not using Spatie
+            'user'  => new UserResource($user),
         ], 200);
     }
 
