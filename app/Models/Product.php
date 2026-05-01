@@ -4,15 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // 1. ADD THIS
 
 class Product extends Model
 {
-    use HasUuids;
+    use HasUuids, HasFactory; // 2. ADD HasFactory HERE
 
     protected $fillable = [
         'name',
         'description',
-        'price'
+        'price',
+        'uuid' // Adding this ensures your seeder can fill the uuid column
     ];
 
     /**

@@ -3,15 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // Added for seeding
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
-    use HasUuids;
+    // HasFactory allows php artisan db:seed to work
+    // HasUuids automatically generates UUIDs for new records
+    use HasFactory, HasUuids; 
 
     protected $fillable = [
-        'uuid',  // Add this so the Repository can save/map it
+        'uuid',  // Necessary for your Repository and Service mapping
         'name',
         'email',
     ];
@@ -26,6 +29,7 @@ class Customer extends Model
 
     /**
      * Relationship with Orders.
+     * This allows you to call $customer->orders in your Controllers.
      */
     public function orders(): HasMany
     {

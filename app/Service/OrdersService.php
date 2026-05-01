@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Models\Customer; // Required to use the Customer model
 use App\Repository\OrdersRepository;
 use App\Http\Resources\OrdersResource;
 
@@ -14,52 +15,43 @@ class OrdersService
         $this->ordersRepository = $ordersRepository;
     }
 
+    /**
+     * List all orders with pagination.
+     */
     public function listOrders(int $perPage = 15)
     {
         $collection = $this->ordersRepository->paginate($perPage);
         return OrdersResource::collection($collection);
     }
 
+    /**
+     * Create a new order using the validated payload.
+     */
     public function createOrders(array $payload)
     {
         $model = $this->ordersRepository->create($payload);
         return new OrdersResource($model);
     }
 
+    /**
+     * Get a specific order by its UUID.
+     */
     public function getOrders(string $uuid)
     {
         $model = $this->ordersRepository->findByUuid($uuid);
         return new OrdersResource($model);
     }
 
-    public function getOrdersByField(string $field, $value)
-    {
-        $model = $this->ordersRepository->findByField($field, $value);
-        return new OrdersResource($model);
-    }
-
-    public function updateOrders(string $uuid, array $payload)
-    {
-        $model = $this->ordersRepository->update($uuid, $payload);
-        return new OrdersResource($model);
-    }
-
-    public function deleteOrders(string $uuid)
-    {
-        $this->ordersRepository->delete($uuid);
-        return true;
-    }
-
-    public function restoreOrders(string $uuid)
-    {
-        $model = $this->ordersRepository->restore($uuid);
-        return new OrdersResource($model);
-    }
+    /**
+     * Custom logic to return a detailed list of orders for a specific customer.
+     * This fulfills the requirement: "Order list per customer"
+     */
     public function getCustomerOrders(string $uuid)
     {
+        // Finds the customer or returns a 404 error if not found
         $customer = Customer::where('uuid', $uuid)->firstOrFail();
 
-        // ✅ This is where your line goes
+        // Pulls orders linked to this customer and includes product details
         $orders = $customer->orders()->with(['items.product'])->get();
 
         return [
@@ -85,5 +77,23 @@ class OrdersService
                 ];
             }),
         ];
+    }
+
+    public function updateOrders(string $uuid, array $payload)
+    {
+        $model = $this->ordersRepository->update($uuid, $payload);
+        return new OrdersResource($model);
+    }
+
+    public function deleteOrders(string $uuid)
+    {
+        $this->ordersRepository->delete($uuid);
+        return true;
+    }
+
+    public function restoreOrders(string $uuid)
+    {
+        $model = $this->ordersRepository->restore($uuid);
+        return new OrdersResource($model);
     }
 }
