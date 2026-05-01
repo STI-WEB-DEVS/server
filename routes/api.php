@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'index']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
