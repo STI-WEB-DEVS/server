@@ -44,4 +44,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function customer()
+    {
+        /**
+         * Use belongsTo because the 'customer_id' foreign key 
+         * is located on this User model's table.
+         */
+        return $this->belongsTo(Customer::class);
+    }
+ 
 }
