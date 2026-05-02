@@ -26,7 +26,32 @@ class OrderService
     public function createOrder(array $payload)
     {
         return DB::transaction(function () use ($payload) {
-            $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+            $customer = null;
+
+            if (! empty($payload['customer_uuid'])) {
+                $customer = Customer::where('uuid', $payload['customer_uuid'])->first();
+            }
+
+            $user = auth()->user();
+
+            if (! $customer && $user) {
+                $customer = $user->customer;
+            }
+
+            if (! $customer && $user) {
+                $customer = Customer::firstOrCreate(
+                    ['email' => $user->email],
+                    ['name' => $user->name]
+                );
+
+                if (! $user->customer_id) {
+                    $user->update(['customer_id' => $customer->id]);
+                }
+            }
+
+            if (! $customer) {
+                abort(422, 'Unable to resolve customer for order');
+            }
 
             $order = $this->orderRepository->create([
                 'customer_id'  => $customer->id,
