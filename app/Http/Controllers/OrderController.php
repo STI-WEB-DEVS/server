@@ -15,45 +15,40 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request)
     {
-        $orders = $this->orderService->listOrder();
-        return response()->json($orders);
+        return $this->orderService->listOrder($request->input('per_page', 15));
+    }
+    
+    public function store(Request $request) 
+    { 
+    $validated = $request->validate([
+    'customer_uuid' => 'required|uuid',
+    'items' => 'required|array|min:1', 
+    'items.*.product_uuid' => 'required|uuid',
+    'items.*.quantity' => 
+    'required|integer|min:1', ]); 
+    return $this->orderService->createOrder($validated); 
     }
 
-    public function customerOrders(string $customerUuid)
+    public function show(string $uuid)
     {
-        $orders = $this->orderService->getOrdersByCustomerUuid($customerUuid);
-        return response()->json($orders);
+        return $this->orderService->getOrder($uuid);
     }
 
-
-
-    public function store(OrderStoreRequest $request): JsonResponse
+    public function update(Request $request, string $uuid)
     {
-        $customerId = $request->input('customer_id');
-        $items      = $request->input('items');
-
-        $order = $this->orderService->createOrder($customerId, $items);
-
-        return response()->json($order, 201);
+        return $this->orderService->updateOrder($uuid, $request->all());
     }
 
-    public function show(string $uuid): JsonResponse
-    {
-        $order = $this->orderService->getOrder($uuid);
-        return response()->json($order);
-    }
-
-    public function update(string $uuid, OrderStoreRequest $request): JsonResponse
-    {
-        $order = $this->orderService->updateOrder($uuid, $request->validated());
-        return response()->json($order);
-    }
-
-    public function destroy(string $uuid): JsonResponse
+    public function destroy(string $uuid)
     {
         $this->orderService->deleteOrder($uuid);
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Deleted successfully'], 200);
+    }
+    
+    public function restore(string $uuid)
+    {
+        return $this->orderService->restoreOrder($uuid);
     }
 }
