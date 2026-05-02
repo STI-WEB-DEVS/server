@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Models\Order;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderRepository
 {
@@ -26,11 +25,6 @@ class OrderRepository
             ->firstOrFail();
     }
 
-    public function findByField(string $field, $value)
-    {
-        return Order::where($field, $value)->firstOrFail();
-    }
-
     public function update(string $uuid, array $payload)
     {
         $model = $this->findByUuid($uuid);
@@ -41,10 +35,8 @@ class OrderRepository
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
-        return $model->delete(); // hard delete
+        return $model->delete();
     }
-
-    // Removed restore() method completely
 
     public function findByCustomerId(int $customerId)
     {
