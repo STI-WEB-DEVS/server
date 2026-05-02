@@ -33,6 +33,8 @@ class UserService
 
         $token = $user->createToken($user->email)->plainTextToken;
 
+        $user->load('customer');
+
         return response()->json([
             'user' => new UserResource($user),
             'token' => $token,
