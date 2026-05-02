@@ -3,15 +3,18 @@
 namespace App\Service;
 
 use App\Repository\UserRepository;
+use App\Repository\CustomersRepository; 
 use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
     private UserRepository $userRepository;
+    private CustomersRepository $customersRepository; 
 
-    public function __construct(UserRepository $userRepository)
+    public function __construct(UserRepository $userRepository, CustomersRepository $customersRepository)
     {
         $this->userRepository = $userRepository;
+        $this->customersRepository = $customersRepository;
     }
 
     public function loginUser(object $payload)
@@ -30,10 +33,20 @@ class UserService
             return response()->json(['message' => 'Invalid password'], 401);
         }
 
+        try {
+            $customer = $this->customersRepository->findByField('email', $payload->email);
+            $customerUuid = $customer->uuid;
+            $customerName = $customer->name ?? 'Guest';
+        } catch (\Exception $e) {
+            $customerUuid = $user->uuid;
+            $customerName = $user->name ?? 'Guest';
+        }
+
         $token = $user->createToken($user->email)->plainTextToken;
 
         return response()->json([
-            'uuid'  => $user->uuid,
+            'uuid'  => $customerUuid,      
+            'name'  => $customerName,    
             'role'  => $user->getRoleNames()->first() ?? 'customer',
             'token' => $token,
         ], 200);
@@ -44,7 +57,6 @@ class UserService
         if ($user->currentAccessToken()) {
             $user->currentAccessToken()->delete();
         }
-
         return response()->json(['message' => 'Logged out successfully'], 200);
     }
 }
