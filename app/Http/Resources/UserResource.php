@@ -23,6 +23,4 @@ class UserResource extends JsonResource
             'role' => $this->getRoleNames()->first(), 
         ]; 
     } 
-} 
- 
- 
+}
