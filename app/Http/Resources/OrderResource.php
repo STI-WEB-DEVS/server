@@ -2,24 +2,25 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\OrderItemResource;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class OrderResource extends JsonResource
 {
-    public function toArray(Request $request): array
+    public function toArray($request)
     {
         return [
-            'uuid'         => $this->uuid,
-            'customer'     => [
-                'uuid'  => $this->customer->uuid ?? null,
-                'name'  => $this->customer->name ?? null,
-                'email' => $this->customer->email ?? null,
+            'uuid' => $this->uuid,
+            'order_uuid' => $this->uuid, // alias for frontend
+            'customer_uuid' => $this->customer->uuid, // expose UUID for filtering
+            'customer' => [
+                'name' => $this->customer->name,
+                'email' => $this->customer->email,
             ],
-            'total_amount' => $this->total_amount,
-            'items'        => OrderItemResource::collection($this->whenLoaded('items')),
-            'created_at'   => $this->created_at,
+            'items' => OrderItemResource::collection($this->items),
+            'total_price' => $this->total_amount,
+            'status' => $this->status,
+            'created_at' => $this->created_at->toDateTimeString(),
+            'updated_at' => $this->updated_at->toDateTimeString(),
         ];
     }
 }

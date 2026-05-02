@@ -3,13 +3,14 @@
 namespace App\Repository;
 
 use App\Models\Order;
-use App\Models\Customer;
 
 class OrderRepository
 {
     public function paginate(int $perPage = 15)
     {
-        return Order::with(['customer', 'items.product'])->latest()->paginate($perPage);
+        return Order::with(['customer', 'items.product'])
+            ->latest()
+            ->paginate($perPage);
     }
 
     public function create(array $payload)
@@ -19,21 +20,9 @@ class OrderRepository
 
     public function findByUuid(string $uuid)
     {
-        return Order::with(['customer', 'items.product'])->where('uuid', $uuid)->firstOrFail();
-    }
-
-    public function findByField(string $field, $value)
-    {
-        return Order::where($field, $value)->firstOrFail();
-    }
-
-    public function findByCustomerUuid(string $customerUuid, int $perPage = 15)
-    {
-        $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
         return Order::with(['customer', 'items.product'])
-            ->where('customer_id', $customer->id)
-            ->latest()
-            ->paginate($perPage);
+            ->where('uuid', $uuid)
+            ->firstOrFail();
     }
 
     public function update(string $uuid, array $payload)
@@ -47,5 +36,13 @@ class OrderRepository
     {
         $model = $this->findByUuid($uuid);
         return $model->delete();
+    }
+
+    public function findByCustomerId(int $customerId)
+    {
+        return Order::with(['customer', 'items.product'])
+            ->where('customer_id', $customerId)
+            ->latest()
+            ->get();
     }
 }

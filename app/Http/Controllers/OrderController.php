@@ -15,29 +15,40 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
+    // List all orders (paginated)
     public function index(Request $request)
     {
         return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
+    // Create a new order (always creates, never overwrites)
     public function store(OrderStoreRequest $request)
     {
         return $this->orderService->createOrder($request->validated());
     }
 
+    // Show a single order by UUID
     public function show(string $uuid)
     {
         return $this->orderService->getOrder($uuid);
     }
 
+    // Delete an order by UUID
     public function destroy(string $uuid)
     {
         $this->orderService->deleteOrder($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
 
-    public function listByCustomer(string $customerUuid)
+    // // List orders by customer (paginated)
+    // public function listByCustomer(Request $request, string $customerUuid)
+    // {
+    //     return $this->orderService->getOrdersByCustomer($customerUuid);
+    // }
+
+    // Get all orders for a customer (non-paginated)
+    public function getByCustomer(string $uuid)
     {
-        return $this->orderService->listOrdersByCustomer($customerUuid, 15);
+        return $this->orderService->getOrdersByCustomer($uuid);
     }
 }

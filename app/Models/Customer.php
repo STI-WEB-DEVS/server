@@ -10,7 +10,7 @@ class Customer extends Model
     use HasUuids;
 
     protected $fillable = [
-        'name', 
+        'name',
         'email'
     ];
 
@@ -22,5 +22,10 @@ class Customer extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'uuid');
     }
 }

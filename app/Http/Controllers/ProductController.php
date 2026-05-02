@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductStoreRequest;
-use App\Http\Requests\UpdateProductRequest;
 use App\Service\ProductService;
 use Illuminate\Http\Request;
 
@@ -31,7 +30,7 @@ class ProductController extends Controller
         return $this->productService->getProduct($uuid);
     }
 
-    public function update(UpdateProductRequest $request, string $uuid)
+    public function update(ProductStoreRequest $request, string $uuid)
     {
         return $this->productService->updateProduct($uuid, $request->validated());
     }
