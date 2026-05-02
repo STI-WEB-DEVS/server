@@ -27,7 +27,18 @@ class OrderService
 
     public function createOrder(array $payload)
     {
-        $customer = \App\Models\Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+        $user = auth()->user();
+
+    if (!$user) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
+    }
+
+    $customer = $user->customer;   // This uses the relationship you already have
+
+    if (!$customer) {
+        return response()->json(['message' => 'No customer linked to this user account'], 422);
+    }
+        // $customer = \App\Models\Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
 
     $totalAmount = 0;
 

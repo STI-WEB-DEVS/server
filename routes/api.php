@@ -20,7 +20,7 @@ Route::post('/login', [AuthController::class, 'login']);
         'languages' => LanguageController::class,
         'products' => ProductsController::class,
         'customers' => CustomersController::class,
-        'Order' => OrderController::class,
+        'orders' => OrderController::class,
         'OrderItem' => OrderItemController::class,
     ]);
 
