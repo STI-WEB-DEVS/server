@@ -71,4 +71,44 @@ class CustomerService
 
         return new CustomerResource($model);
     }
+
+    public function getCustomerOrders(string $customer_uuid)
+    {
+
+        $customer = $this->customerRepository->getCustomerOrders($customer_uuid);
+
+        if (!$customer) {
+            return response()->json([
+                'message' => 'Customer Not Found.'
+            ], 404);
+        };
+        $orders = $customer->orders;
+
+
+        return response()->json([
+            'customer' => [
+                'uuid' => $customer->uuid,
+                'name' => $customer->name,
+                'email' => $customer->email,
+            ],
+            'orders' => $orders->map(function ($order) {
+                return [
+                    'uuid' => $order->uuid,
+                    'total_amount' => $order->total_amount,
+                    'created_at' => $order->created_at,
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'product' => [
+                                'uuid' => $item->product->uuid,
+                                'name' => $item->product->name,
+                            ],
+                            'quantity' => $item->quantity,
+                            'unit_price' => $item->unit_price,
+                            'subtotal' => $item->quantity * $item->unit_price,
+                        ];
+                    }),
+                ];
+            }),
+        ]);
+    }
 }

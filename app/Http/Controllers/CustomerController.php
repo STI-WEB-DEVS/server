@@ -59,4 +59,12 @@ class CustomerController extends Controller
 
         return $this->customerService->deleteCustomer($id);
     }
+    public function customerOrders(string $id)
+    {
+        //
+
+        return $this->customerService->getCustomerO+rders($id);
+    }
+
+
 }
