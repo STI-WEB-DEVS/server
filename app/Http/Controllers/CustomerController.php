@@ -25,6 +25,7 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         //
+        return $this->customerService->createCustomer($request->all());
     }
 
     /**

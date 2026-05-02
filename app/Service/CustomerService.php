@@ -8,11 +8,11 @@ namespace App\Service;
 
 class CustomerService
 {
-    private CustomerRepository $userRepository;
+    private CustomerRepository $customerRepository;
 
-    public function __construct(UserRepository $userRepository)
+    public function __construct(CustomerRepository $customerRepository)
     {
-        $this->userRepository = $userRepository;
+        $this->customerRepository = $customerRepository;
     }
 
     public function listCustomer(int $perPage = 15)
@@ -26,7 +26,7 @@ class CustomerService
     {
         $model = $this->customerRepository->create($payload);
 
-        return new CustomerService($model);
+        return new CustomerResource($model);
     }
 
     public function getCustomer(string $uuid)
@@ -56,3 +56,4 @@ class CustomerService
 
         return true;
     }
+}
