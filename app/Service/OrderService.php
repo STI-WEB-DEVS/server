@@ -26,7 +26,7 @@ class OrderService
 
     public function createOrder(array $payload)
     {   
-        $customer = Customer::where('uuid', $payload['customer_id'])->firstOrFail();
+        $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
 
         if ($customer) {
             $order = $this->orderRepository->create([
