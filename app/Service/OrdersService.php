@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Repository\CustomersRepository;
+use App\Repository\ProductsRepository;
 use App\Repository\OrdersRepository;
 use App\Http\Resources\OrdersResource;
 
@@ -9,9 +11,11 @@ class OrdersService
 {
     private OrdersRepository $ordersRepository;
 
-    public function __construct(OrdersRepository $ordersRepository) 
+    public function __construct(OrdersRepository $ordersRepository,CustomersRepository $customerRepository,ProductsRepository $productRepository) 
     {
         $this->ordersRepository = $ordersRepository;
+        $this->customerRepository = $customerRepository;
+        $this->productRepository = $productRepository;
     }
 
     public function listOrders(int $perPage = 15)
@@ -22,8 +26,43 @@ class OrdersService
 
     public function createOrders(array $payload)
     {
-        $model = $this->ordersRepository->create($payload);
-        return new OrdersResource($model);
+        return DB::transaction(function () use ($payload) {
+            // Resolve customer using the repository
+            $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
+       
+
+            $totalOrderAmount = 0;
+            $itemsToCreate = [];
+
+            // Resolve products and calculate totals
+            foreach ($payload['items'] as $item) {
+                $product = $this->productRepository->findByUuid($item['product_uuid']);
+               
+
+                $lineTotal = $product->price * $item['quantity'];
+                $totalOrderAmount += $lineTotal;
+
+                $itemsToCreate[] = [
+                    'product_id'   => $product->id,
+                    'quantity'     => $item['quantity'],
+                    'unit_price'   => $product->price,
+                ];
+            }
+
+            // Create the main Order via Repository
+            $order = $this->ordersRepository->create([
+                'customer_id'  => $customer->id,
+                'total_amount' => $totalOrderAmount,
+            ]);
+
+            // Create Order Items via Repository
+            foreach ($itemsToCreate as $itemData) {
+                $itemData['order_id'] = $order->id;
+                $this->ordersRepository->createItem($itemData);
+            }
+
+            return new OrdersResource($order->load('items.product'));
+        });
     }
 
     public function getOrders(string $uuid)
