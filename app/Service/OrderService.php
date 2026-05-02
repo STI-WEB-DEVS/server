@@ -5,72 +5,48 @@ namespace App\Service;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Order;
-use App\Repository\OrderRepository;
-use App\Http\Resources\OrderResource;
+use App\Models\OrderItem;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    private OrderRepository $orderRepository;
-
-    public function __construct(OrderRepository $orderRepository)
+    public function createOrder(array $data)
     {
-        $this->orderRepository = $orderRepository;
-    }
+        return DB::transaction(function () use ($data) {
 
-    public function listOrder(int $perPage = 15)
-    {
-        $collection = $this->orderRepository->paginate($perPage);
-        return OrderResource::collection($collection);
-    }
+            $customer = Customer::where('uuid', $data['customer_uuid'])->firstOrFail();
 
-    public function createOrder(array $payload)
-    {   
-        $customer = Customer::where('uuid', $payload['customer_id'])->firstOrFail();
-
-        if ($customer) {
-            $order = $this->orderRepository->create([
-                'customer_id'  => $customer->id,
+            $order = Order::create([
+                'customer_id' => $customer->id,
                 'total_amount' => 0,
             ]);
 
 
             $total = 0;
-            foreach ($payload['items'] as $item) {
-                $product = Product::where('uuid', $item['product_id'])->firstOrFail();
-                $unitPrice = $product->price;
-                $quantity  = $item['quantity'];
 
-                $order->items()->create([
+            foreach ($data['items'] as $item) {
+
+                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+
+                $subtotal = $product->price * $item['quantity'];
+                $total += $subtotal;
+
+                OrderItem::create([
+                    'order_id' => $order->id,
                     'product_id' => $product->id,
-                    'quantity'   => $quantity,
-                    'unit_price' => $unitPrice,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $product->price,
                 ]);
-
-                $total += $unitPrice * $quantity;
             }
 
-            $order->update(['total_amount' => $total]);
-            return new OrderResource($order);
-        }
-            
-    }
+            $order->update([
+                'total_amount' => $total,
+            ]);
 
-    public function getOrder(string $uuid)
-    {
-        $model = $this->orderRepository->findByUuid($uuid);
-        return new OrderResource($model);
-    }
-
-    public function listOrdersByCustomer(string $customerUuid, int $perPage = 15)
-    {
-        $collection = $this->orderRepository->findByCustomerUuid($customerUuid, $perPage);
-        return OrderResource::collection($collection);
-    }
-
-    public function deleteOrder(string $uuid)
-    {
-        $this->orderRepository->delete($uuid);
-        return true;
+            return response()->json([
+                'message' => 'Order created successfully',
+                'data' => $order->load('items')
+            ]);
+        });
     }
 }
