@@ -29,6 +29,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
             $table->decimal('total_amount', 10, 2)->default(0);
+            $table->integer('quantity'); // <--- DAPAT MERONG GANITO
             $table->timestamps();
         });
 

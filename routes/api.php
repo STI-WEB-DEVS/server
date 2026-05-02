@@ -13,7 +13,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::apiResource('customers', CustomerController::class);
 Route::apiResource('products', ProductController::class);
 Route::apiResource('orders', OrderController::class);
-
+Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'index']);
 
 
 
