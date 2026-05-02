@@ -25,7 +25,7 @@ class OrdersResource extends JsonResource
                 ];
             }),
             
-            'total_amt' => collect($this->orderItems ?? [])->sum(fn($item) => $item->quantity * ($item->product->price ?? 0)),
+            'total_amount' => collect($this->orderItems ?? [])->sum(fn($item) => $item->quantity * ($item->product->price ?? 0)),
 
             'created_at' => $this->created_at,
         ];

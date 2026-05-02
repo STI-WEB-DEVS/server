@@ -62,14 +62,19 @@ class OrdersService
         // Find customer by UUID, but use numeric ID for DB
         $customer = Customer::where('uuid', $data['customer_uuid'])->firstOrFail();
 
+        $totalAmount = 0;
         // Create order linked to customer (using numeric ID)
         $order = Order::create([
             'customer_id' => $customer->id,
+            'total_amount' => 0 // temporary
+
         ]);
 
         // Attach products by resolving UUIDs to IDs
         foreach ($data['items'] as $item) {
             $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+            $lineTotal = $product->price * $item['quantity'];
+            $totalAmount += $lineTotal;
 
             OrderItem::create([
                 'order_id'   => $order->id,        // ✅ numeric ID
@@ -78,6 +83,10 @@ class OrdersService
                 'unit_price' => $product->price,
             ]);
         }
+
+        $order->update([
+            'total_amount' => $totalAmount
+        ]);
 
         return $order->load(['customer', 'orderItems.product']);
     }
