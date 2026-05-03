@@ -7,43 +7,54 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderRepository
 {
+    public function findByUuid(string $uuid): ?Order
+    {
+        return Order::with(['items.product', 'customer'])
+                    ->where('uuid', $uuid)
+                    ->first();
+    }
+
     public function paginate(int $perPage = 15)
     {
-        return Order::latest()->paginate($perPage);
+        return Order::with(['items.product', 'customer'])->paginate($perPage);
     }
 
-    public function create(array $payload)
+    public function findByCustomerUuid(string $uuid, int $perPage = 15)
     {
-        return Order::create($payload);
+        return Order::with(['items.product', 'customer'])
+                    ->whereHas('customer', function ($query) use ($uuid) {
+                        $query->where('uuid', $uuid);
+                    })
+                    ->paginate($perPage);
+    }    
+
+
+
+    public function findById(int $id): ?Order
+    {
+        return Order::find($id);
     }
 
-    public function findByUuid(string $uuid)
+    public function findByField(string $field, $value): ?Order
     {
-        return Order::where('uuid', $uuid)->firstOrFail();
+        return Order::where($field, $value)->first();
     }
 
-    public function findByField(string $field, $value)
+    public function create(array $data): Order
     {
-        return Order::where($field, $value)->firstOrFail();
+        return Order::create($data);
     }
 
-    public function update(string $uuid, array $payload)
+    public function update(string $uuid, array $data): Order
     {
-        $model = $this->findByUuid($uuid);
-        $model->update($payload);
-        return $model;
+        $order = $this->findByUuid($uuid);
+        $order->update($data);
+        return $order;
     }
 
-    public function delete(string $uuid)
+    public function delete(string $uuid): bool
     {
-        $model = $this->findByUuid($uuid);
-        return $model->delete();
-    }
-
-    public function restore(string $uuid)
-    {
-        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
-        $model->restore();
-        return $model;
+        $order = $this->findByUuid($uuid);
+        return $order->delete();
     }
 }

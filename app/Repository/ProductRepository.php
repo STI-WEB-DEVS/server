@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductRepository
 {
-    public function paginate(int $perPage = 15)
+     public function paginate(int $perPage = 15)
     {
         return Product::latest()->paginate($perPage);
     }
@@ -20,6 +20,11 @@ class ProductRepository
     public function findByUuid(string $uuid)
     {
         return Product::where('uuid', $uuid)->firstOrFail();
+    }
+    
+    public function findById(string $id)
+    {
+        return Product::where('id', $id)->first();
     }
 
     public function findByField(string $field, $value)
