@@ -44,4 +44,19 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Company::class);
     }
+
+    /**
+     * The "booted" method of the model.
+     * Automatically assign a role when a new user is created.
+     */
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            // Only assign role if user doesn't have any roles yet
+            if ($user->roles->isEmpty()) {
+                // Assign 'customer' role by default
+                $user->assignRole('customer');
+            }
+        });
+    }
 }

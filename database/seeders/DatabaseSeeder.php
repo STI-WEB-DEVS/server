@@ -9,18 +9,19 @@ use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'uuid' => (string) Str::uuid(),
-            'name' => 'Test User',
-            'email' => 'test@cs.com',
-            'password' => Hash::make('password'),
-        ]);
+        // ALWAYS run the RoleSeeder first
+        $this->call(RoleSeeder::class);
+        
+        // Create test user if doesn't exist
+        User::firstOrCreate(
+            ['email' => 'test@cs.com'],
+            [
+                'uuid' => (string) Str::uuid(),
+                'name' => 'Test User',
+                'password' => Hash::make('password'),
+            ]
+        );
     }
 }
