@@ -22,5 +22,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/customers/{uuid}/orders', [OrderController::class, 'indexByCustomer']);
+        Route::get('/orders/{uuid}', [OrderController::class, 'show']);
 
     });

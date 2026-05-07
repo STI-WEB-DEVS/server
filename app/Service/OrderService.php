@@ -3,22 +3,29 @@
 namespace App\Service;
 
 use App\Repository\OrderRepository;
-use App\Models\Customer;
-use App\Models\Product;
+use App\Repository\CustomerRepository;
+use App\Repository\ProductRepository;
 
 class OrderService
 {
     protected OrderRepository $orderRepository;
+    protected CustomerRepository $customerRepository;
+    protected ProductRepository $productRepository;
 
-    public function __construct(OrderRepository $orderRepository)
-    {
+    public function __construct(
+        OrderRepository $orderRepository,
+        CustomerRepository $customerRepository,
+        ProductRepository $productRepository
+    ) {
         $this->orderRepository = $orderRepository;
+        $this->customerRepository = $customerRepository;
+        $this->productRepository = $productRepository;
     }
 
     public function createOrder(array $data)
     {
-        $customer = Customer::where('uuid', $data['customer_uuid'])->firstOrFail();
-        $product  = Product::where('uuid', $data['product_uuid'])->firstOrFail();
+        $customer = $this->customerRepository->findByUuid($data['customer_uuid']);
+        $product  = $this->productRepository->findByUuid($data['product_uuid']);
 
         $orderData = [
             'customer_id'  => $customer->id,
@@ -32,6 +39,11 @@ class OrderService
         ];
 
         return $this->orderRepository->createWithItem($orderData, $itemData);
+    }
+
+    public function getOrder(string $uuid)
+    {
+        return $this->orderRepository->findByUuid($uuid);
     }
 
     public function getOrdersByCustomer(string $uuid)
