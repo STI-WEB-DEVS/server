@@ -9,7 +9,7 @@ class CustomersRepository
 {
     public function paginate(int $perPage = 15)
     {
-        return Customer::latest()->paginate($perPage);
+        return Customer::orderBy('id', 'asc')->paginate($perPage);
     }
 
     public function create(array $payload)

@@ -47,7 +47,61 @@ class ProductsService
     public function deleteProducts(string $uuid)
     {
         $this->productsRepository->delete($uuid);
+        
+        // Renumber all product IDs sequentially
+        $this->renumberProductIds();
+        
         return true;
+    }
+
+    /**
+     * Renumbers all product IDs sequentially after deletion
+     * Also updates all foreign key references in order_items table
+     */
+    private function renumberProductIds()
+    {
+        // Disable foreign key checks temporarily
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        
+        // Get all products ordered by current ID
+        $products = \App\Models\Product::orderBy('id')->get();
+        
+        // Create a mapping of old IDs to new IDs
+        $idMapping = [];
+        $newId = 1;
+        
+        foreach ($products as $product) {
+            $oldId = $product->id;
+            $idMapping[$oldId] = $newId;
+            $newId++;
+        }
+        
+        // Update order_items table to use new product IDs
+        foreach ($idMapping as $oldId => $newProductId) {
+            \DB::table('order_items')
+                ->where('product_id', $oldId)
+                ->update(['product_id' => $newProductId + 10000]); // Temporary ID to avoid conflicts
+        }
+        
+        // Update product IDs
+        foreach ($idMapping as $oldId => $newProductId) {
+            \DB::table('products')
+                ->where('id', $oldId)
+                ->update(['id' => $newProductId]);
+        }
+        
+        // Update order_items back to final product IDs
+        foreach ($idMapping as $oldId => $newProductId) {
+            \DB::table('order_items')
+                ->where('product_id', $newProductId + 10000)
+                ->update(['product_id' => $newProductId]);
+        }
+        
+        // Reset auto-increment to next available ID
+        \DB::statement('ALTER TABLE products AUTO_INCREMENT = ' . $newId);
+        
+        // Re-enable foreign key checks
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 
     public function restoreProducts(string $uuid)

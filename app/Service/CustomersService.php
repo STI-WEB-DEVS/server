@@ -24,7 +24,21 @@ class CustomersService
 
     public function createCustomers(array $payload)
     {
+        // Create the customer record
         $model = $this->customersRepository->create($payload);
+        
+        // Create a corresponding user account with customer role
+        $user = \App\Models\User::create([
+            'uuid' => \Illuminate\Support\Str::uuid(),
+            'name' => $payload['name'],
+            'email' => $payload['email'],
+            'password' => \Illuminate\Support\Facades\Hash::make('password'), // Default password
+            'customer_id' => $model->id,
+        ]);
+        
+        // Assign customer role
+        $user->assignRole('customer');
+        
         return new CustomersResource($model);
     }
 
@@ -50,7 +64,61 @@ class CustomersService
     public function deleteCustomers(string $uuid)
     {
         $this->customersRepository->delete($uuid);
+        
+        // Renumber all customer IDs sequentially
+        $this->renumberCustomerIds();
+        
         return true;
+    }
+
+    /**
+     * Renumbers all customer IDs sequentially after deletion
+     * Also updates all foreign key references in orders table
+     */
+    private function renumberCustomerIds()
+    {
+        // Disable foreign key checks temporarily
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        
+        // Get all customers ordered by current ID
+        $customers = Customer::orderBy('id')->get();
+        
+        // Create a mapping of old IDs to new IDs
+        $idMapping = [];
+        $newId = 1;
+        
+        foreach ($customers as $customer) {
+            $oldId = $customer->id;
+            $idMapping[$oldId] = $newId;
+            $newId++;
+        }
+        
+        // Update orders table to use new customer IDs
+        foreach ($idMapping as $oldId => $newCustomerId) {
+            \DB::table('orders')
+                ->where('customer_id', $oldId)
+                ->update(['customer_id' => $newCustomerId + 10000]); // Temporary ID to avoid conflicts
+        }
+        
+        // Update customer IDs
+        foreach ($idMapping as $oldId => $newCustomerId) {
+            \DB::table('customers')
+                ->where('id', $oldId)
+                ->update(['id' => $newCustomerId]);
+        }
+        
+        // Update orders back to final customer IDs
+        foreach ($idMapping as $oldId => $newCustomerId) {
+            \DB::table('orders')
+                ->where('customer_id', $newCustomerId + 10000)
+                ->update(['customer_id' => $newCustomerId]);
+        }
+        
+        // Reset auto-increment to next available ID
+        \DB::statement('ALTER TABLE customers AUTO_INCREMENT = ' . $newId);
+        
+        // Re-enable foreign key checks
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 
     public function restoreCustomers(string $uuid)
