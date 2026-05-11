@@ -22,14 +22,13 @@ class OrderController extends Controller
     
     public function store(Request $request) 
     { 
-      
-    $validated = $request->validate([
-    'customer_uuid' => 'required|uuid',
-    'items' => 'required|array|min:1', 
-    'items.*.product_uuid' => 'required|uuid',
-    'items.*.quantity' => 
-    'required|integer|min:1', ]); 
-    return $this->orderService->createOrder($validated); 
+        $validated = $request->validate([
+        'customer_uuid' => 'required|uuid',
+        'items' => 'required|array|min:1', 
+        'items.*.product_uuid' => 'required|uuid',
+        'items.*.quantity' => 
+        'required|integer|min:1', ]); 
+        return $this->orderService->createOrder($validated); 
     }
 
     public function show(string $uuid)

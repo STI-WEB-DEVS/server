@@ -11,7 +11,7 @@ class OrderRepository
 
     public function __construct(Order $model)
     {
-        $this-> = $model;
+        $this->model = $model;
     }
 
     public function paginate(int $perPage )
