@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request
+use App\Service\ProductService;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
