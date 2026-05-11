@@ -2,18 +2,22 @@
 
 namespace App\Service;
 
-use App\Models\Customer;
-use App\Models\Product;
+use App\Repository\CustomerRepository;
+use App\Repository\ProductRepository;
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
 
 class OrderService
 {
+    private ProductRepository $CustomerRepository;
+    private CustomerRepository $ProductRepository;
     private OrderRepository $orderRepository;
 
-    public function __construct(OrderRepository $orderRepository)
+    public function __construct(OrderRepository $orderRepository, ProductRepository $CustomerRepository, CustomerRepository $ProductRepository)
     {
         $this->orderRepository = $orderRepository;
+        $this->CustomerRepository = $CustomerRepository;
+        $this->ProductRepository = $ProductRepository;
     }
 
     public function listOrder(int $perPage = 15)
@@ -24,11 +28,13 @@ class OrderService
 
     public function createOrder(array $payload)
     {
-        $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+        $customer = $this->CustomerRepository->findByUuid($payload['customer_uuid']);
+        //$customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
 
         $totalAmount = 0;
         foreach ($payload['orders'] as $order) {
-            $product = Product::where('uuid', $order['product_uuid'])->firstOrFail();
+            $product = $this->ProductRepository->findByUuid($payload['product_uuid']);
+            //$product = Product::where('uuid', $order['product_uuid'])->firstOrFail();
             $totalAmount += $product->price * $order['product_quantity'];
         }
 
@@ -38,7 +44,8 @@ class OrderService
         ]);
 
         foreach ($payload['orders'] as $order) {
-            $product = Product::where('uuid', $order['product_uuid'])->first();
+            $product = $this->ProductRepository->findByUuid($payload['product_uuid']);
+            //$product = Product::where('uuid', $order['product_uuid'])->first();
             $createdOrder->items()->create([
                 'product_id' => $product->id,
                 'quantity' => $order['product_quantity'],
@@ -57,7 +64,8 @@ class OrderService
 
     public function getOrdersByCustomerUuid(string $customerUuid, int $perPage = 15)
     {
-        $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+        $customer = $this->CustomerRepository->findByUuid($customerUuid);
+        //$customer = Customer::where('uuid', $customerUuid)->firstOrFail();
         $orders = $this->orderRepository->getByCustomerId($customer->id, $perPage);
         return OrderResource::collection($orders);
     }
