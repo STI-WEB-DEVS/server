@@ -18,19 +18,6 @@ class OrderService
         $this->productRepository = $productRepository;
         $this->customerRepository = $customerRepository;
         $this->orderRepository = $orderRepository;
-   ==========================================     
-    private ProductRepository $CustomerRepository;
-    private CustomerRepository $ProductRepository;
-    private OrderRepository $orderRepository;
-
-    public function __construct(OrderRepository $orderRepository, ProductRepository $CustomerRepository, CustomerRepository $ProductRepository)
->>>>>>> de78a7229f941edd7596b479bd0c8203cab984fb
-    {
-        $this->productRepository = $productRepository;
-        $this->customerRepository = $customerRepository;
-        $this->orderRepository = $orderRepository;
-        $this->CustomerRepository = $CustomerRepository;
-        $this->ProductRepository = $ProductRepository;
     }
 
     public function listOrder(int $perPage = 15)
@@ -55,8 +42,7 @@ class OrderService
         ]);
 
         foreach ($payload['orders'] as $order) {
-            $product = $this->ProductRepository->findByUuid($payload['product_uuid']);
-            //$product = Product::where('uuid', $order['product_uuid'])->first();
+            $product = $this->productRepository->findByUuid($order['product_uuid']);
             $createdOrder->items()->create([
                 'product_id' => $product->id,
                 'quantity' => $order['product_quantity'],
@@ -75,8 +61,7 @@ class OrderService
 
     public function getOrdersByCustomerUuid(string $customerUuid, int $perPage = 15)
     {
-        $customer = $this->CustomerRepository->findByUuid($customerUuid);
-        //$customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+        $customer = $this->customerRepository->findByUuid($customerUuid);
         $orders = $this->orderRepository->getByCustomerId($customer->id, $perPage);
         return OrderResource::collection($orders);
     }
