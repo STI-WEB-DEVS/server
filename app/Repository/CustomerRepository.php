@@ -6,7 +6,6 @@ use App\Models\Customer;
 
 class CustomerRepository
 {
-
     public function paginate(int $perPage = 15)
     {
         return Customer::latest()->paginate($perPage);
@@ -14,16 +13,7 @@ class CustomerRepository
 
     public function create(array $payload)
     {
-        // This will return the existing record if the email matches, 
-    // or create a new one if it doesn't.
-    return Customer::firstOrCreate(
-        ['email' => $data['email']], // Search criteria
-        [
-            'name' => $data['name'],
-            'uuid' => (string) \Illuminate\Support\Str::uuid(),
-            // add other fields here...
-        ]
-    );
+        return Customer::create($payload);
     }
 
     public function findByUuid(string $uuid)
@@ -31,6 +21,10 @@ class CustomerRepository
         return Customer::where('uuid', $uuid)->first();
     }
 
+    public function findByField(string $field, $value)
+    {
+        return Customer::where($field, $value)->first();
+    }
 
     public function update(string $uuid, array $payload)
     {
@@ -40,11 +34,6 @@ class CustomerRepository
         return $model;
     }
 
-    public function findByField(string $field, $value)
-    {
-        return Customer::where($field, $value)->firstOrFail();
-    }
-
     public function delete(string $uuid)
     {
         $model = $this->findByUuid($uuid);
@@ -52,4 +41,11 @@ class CustomerRepository
         return $model->delete();
     }
 
+    // public function restore(string $uuid)
+    // {
+    //     $model = Company::withTrashed()->where('uuid', $uuid)->firstOrFail();
+    //     $model->restore();
+
+    //     return $model;
+    // }
 }

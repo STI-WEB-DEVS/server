@@ -4,13 +4,12 @@ namespace App\Service;
 
 use App\Http\Resources\CustomerResource;
 use App\Repository\CustomerRepository;
-use Illuminate\Support\Facades\Hash;
 
 class CustomerService
 {
     private CustomerRepository $customerRepository;
 
-    public function __construct(CustomerRepository $customerRepository)
+    public function __construct(customerRepository $customerRepository)
     {
         $this->customerRepository = $customerRepository;
     }
@@ -22,16 +21,23 @@ class CustomerService
         return CustomerResource::collection($collection);
     }
 
-    public function getCompanyByField(string $field, $value)
+    public function createCustomer(array $payload)
     {
-        $model = $this->customerRepository->findByField($field, $value);
+        $model = $this->customerRepository->create($payload);
 
         return new CustomerResource($model);
     }
 
-    public function createCustomer(array $payload)
+    public function getCustomer(string $uuid)
     {
-        $model = $this->customerRepository->create($payload);
+        $model = $this->customerRepository->findByUuid($uuid);
+
+        return new CustomerResource($model);
+    }
+
+    public function getCompanyByField(string $field, $value)
+    {
+        $model = $this->customerRepository->findByField($field, $value);
 
         return new CustomerResource($model);
     }
@@ -50,10 +56,10 @@ class CustomerService
         return true;
     }
 
-    public function getCustomer(string $uuid)
-    {
-        $model = $this->customerRepository->findByUuid($uuid);
+    // public function restoreCompany(string $uuid)
+    // {
+    //     $model = $this->companyRepository->restore($uuid);
 
-        return new CustomerResource($model);
-    }
-} 
+    //     return new CompanyResource($model);
+    // }
+}

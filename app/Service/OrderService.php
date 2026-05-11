@@ -3,15 +3,23 @@
 namespace App\Service;
 
 use App\Repository\OrderRepository;
+use App\Repository\ProductRepository;
+use App\Repository\CustomerRepository;
+use App\Service\DB;
 use App\Http\Resources\OrderResource;
+use App\Models\Customer;
 
 class OrderService
 {
     private OrderRepository $orderRepository;
+    private ProductRepository $productRepository;
+    private CustomerRepository $customerRepository;
 
-    public function __construct(OrderRepository $orderRepository) 
+    public function __construct(OrderRepository $orderRepository, ProductRepository $productRepository, CustomerRepository $customerRepository) 
     {
         $this->orderRepository = $orderRepository;
+        $this->productRepository = $productRepository;
+        $this->customerRepository = $customerRepository;
     }
 
     public function listOrder(int $perPage = 15)
@@ -22,14 +30,33 @@ class OrderService
 
     public function createOrder(array $payload)
     {
-        $model = $this->orderRepository->create($payload);
+        //get product id and customer also product amount
+        //generate oders total amount
+        $order = [
+            "customer_id" => $this->customerRepository->findByUuid($payload['customer_uuid'])['id'],
+            "total_amount" => 0
+        ];
+
+        $orderItem = [];
+        foreach($payload['orders'] as $items){
+            $product = $this->productRepository->findByUuid($items['product_uuid']);
+            $order['total_amount'] += $product['price'] * $items['product_quantity'];
+            $orderItem[] = [
+                "product_id" => $product['id'],
+                "quantity" => $items['product_quantity'],
+                "unit_price" => $product['price']
+            ];
+        };
+
+        $model = $this->orderRepository->create($order, $orderItem);
         return new OrderResource($model);
     }
 
     public function getOrder(string $uuid)
     {
-        $model = $this->orderRepository->findByUuid($uuid);
-        return new OrderResource($model);
+        $customer = $this->customerRepository->findByUuid($uuid);
+        $model = $this->orderRepository->findByCustomerUuid($customer['id']);
+        return $model;
     }
 
     public function getOrderByField(string $field, $value)

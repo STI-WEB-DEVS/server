@@ -3,35 +3,55 @@
 namespace App\Repository;
 
 use App\Models\Order;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\OrderItem;
+use Illuminate\Support\Facades\DB as DB;
 
 class OrderRepository
 {
-    protected $model;
-
-    public function __construct(Order $model)
+    public function paginate(int $perPage = 15)
     {
-        $this->model = $model;
+        return Order::latest()->paginate($perPage);
     }
 
-    public function paginate(int $perPage )
+    public function create(array $order, array $orderItem)
     {
-        return $this-> model->paginate($perPage);
+        return DB::transaction(function () use ($order, $orderItem){
+            $orderCreated = Order::create($order);
+            foreach($orderItem as $orderItem)
+                {
+                    $orderItem['order_id'] = $orderCreated['id'];
+                    OrderItem::create($orderItem);
+                }
+            return $orderCreated;
+        });
     }
 
-    public function create(array $payload)
+    public function findByCustomerUuid(int $uuid)
     {
-        return $this->model->create($payload);
+        $customerOrders = Order::where('customer_id', $uuid)->get();
+
+        $result = [];
+
+        foreach ($customerOrders as $order) {
+            $orderItems = OrderItem::where('order_id', $order['id'])->get();
+
+            $result[] = [
+                'order'       => $order,
+                'order_items' => $orderItems,
+            ];
+        }
+
+        return $result;
     }
 
     public function findByUuid(string $uuid)
     {
-        return Order::where('uuid', $uuid)->firstOrFail();
+        return Order::where('uuid', $uuid)->first();
     }
 
-    public function findByWhere(array $criteria)
+    public function findByField(string $field, $value)
     {
-        return $this->model->where($criteria)->get();
+        return Order::where($field, $value)->firstOrFail();
     }
 
     public function update(string $uuid, array $payload)
