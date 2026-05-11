@@ -2,17 +2,21 @@
 
 namespace App\Service;
 
-use App\Models\Customer;
-use App\Models\Product;
+use App\Repository\CustomerRepository;
+use App\Repository\ProductRepository;
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
 
 class OrderService
 {
+    private ProductRepository $productRepository;
+    private CustomerRepository $customerRepository;
     private OrderRepository $orderRepository;
 
-    public function __construct(OrderRepository $orderRepository)
+    public function __construct(ProductRepository $productRepository, CustomerRepository $customerRepository, OrderRepository $orderRepository)
     {
+        $this->productRepository = $productRepository;
+        $this->customerRepository = $customerRepository;
         $this->orderRepository = $orderRepository;
     }
 
@@ -24,11 +28,11 @@ class OrderService
 
     public function createOrder(array $payload)
     {
-        $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+        $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
 
         $totalAmount = 0;
         foreach ($payload['orders'] as $order) {
-            $product = Product::where('uuid', $order['product_uuid'])->firstOrFail();
+            $product = $this->productRepository->findByUuid($order['product_uuid']);
             $totalAmount += $product->price * $order['product_quantity'];
         }
 
