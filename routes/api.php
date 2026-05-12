@@ -14,18 +14,16 @@ Route::post('/login', [AuthController::class, 'login']);
 
 
 
+Route::get('/customers', [CustomerController::class, 'index']);
+Route::get('/customers/{customer}', [CustomerController::class, 'show']);
+
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{product}', [ProductController::class, 'show']);
+
 Route::middleware('auth:sanctum')->group(function () {
-    // Route::delete('/logout', [AuthController::class, 'logout']);
-
-    // Route::apiResources([
-    //     'companies' => CompanyController::class,
-    //     'languages' => LanguageController::class,
-    // ]);
-
-    Route::apiResources([
-        'customers' => CustomerController::class,
-        'products' => ProductController::class,
-    ]);
+    // protected resource actions (create/update/delete) for customers/products
+    Route::apiResource('customers', CustomerController::class)->except(['index', 'show']);
+    Route::apiResource('products', ProductController::class)->except(['index', 'show']);
 
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/customers/{customer}/orders', [OrderController::class, 'listByCustomer']);

@@ -4,6 +4,11 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// Suppress deprecation warnings from PHP 8.5+ that may be printed
+// before JSON responses (this prevents invalid JSON in API responses).
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;
