@@ -32,9 +32,7 @@ class CustomerService
     {
         $model = $this->customerRepository->findByUuid($uuid);
 
-        return [
-            'uuid' => $model->uuid,
-        ];
+        return new CustomerResource($model);
     }
 
     public function updateCustomer(string $uuid, array $payload)

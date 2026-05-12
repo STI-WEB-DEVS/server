@@ -14,6 +14,8 @@ class Customer extends Model
         'uuid',
         'name',
         'email',
+        'address',
+        'phone',
     ];
 
     public function uniqueIds(): array
