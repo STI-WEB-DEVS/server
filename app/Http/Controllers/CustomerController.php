@@ -14,7 +14,6 @@ class CustomerController extends Controller
         $this->customerService = $customerService;
     }
 
-    // Fixed: Added Request $request as a parameter
     public function index(Request $request)
     {
         return $this->customerService->listCustomer($request->input('per_page', 15));
@@ -25,23 +24,25 @@ class CustomerController extends Controller
         return $this->customerService->createCustomer($request->all());
     }
 
-    // Fixed: Changed $uuid to $id to match the method signature
     public function show(string $id)
     {
         return $this->customerService->getCustomer($id);
     }
 
-    // Fixed: Changed $uuid to $id
     public function update(Request $request, string $id)
     {
         return $this->customerService->updateCustomer($id, $request->all());
     }
 
-    // Fixed: Changed $uuid to $id
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        $this->customerService->deleteCustomer($id);
+        $customer = \App\Models\Customer::find($id);
 
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
+
+        $customer->delete();
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
 }

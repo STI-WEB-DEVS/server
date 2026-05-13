@@ -1,30 +1,39 @@
+<?php
+
 namespace App\Http\Controllers;
 
-use App\Service\ProductService;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    private ProductService $productService;
-
-    public function __construct(ProductService $productService)
+    public function index() 
     {
-        $this->productService = $productService;
+        return response()->json(Product::all());
     }
 
-    public function index(Request $request)
+    public function store(Request $request) 
     {
-        return $this->productService->listProduct($request->input('per_page', 15));
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string',
+                'price' => 'required|numeric',
+            ]);
+
+            // Add the UUID required by your database
+            $validated['uuid'] = (string) Str::uuid();
+
+            $product = Product::create($validated);
+            return response()->json($product, 201);
+        } catch (\Exception $e) {
+            // Returns the specific error (e.g., fillable or database error)
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
-    public function store(Request $request)
+    public function update(Request $request, $id) 
     {
-        return $this->productService->createProduct($request->all());
-    }
-}
-
-    public function update(Request $request, $id) {
         try {
             $product = Product::findOrFail($id);
             $product->update($request->only(['name', 'price']));
@@ -34,14 +43,20 @@ class ProductController extends Controller
         }
     }
 
-    public function destroy(string $uuid)
+    public function destroy($id) 
     {
-        $this->productService->deleteProduct($uuid);
-        return response()->json(['message' => 'Deleted successfully'], 200);
-    }
-    
-    public function restore(string $uuid)
-    {
-        return $this->productService->restoreProduct($uuid);
+        try {
+            // Find the product by the integer ID seen in your DB
+            $product = Product::find($id);
+            
+            if (!$product) {
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            $product->delete();
+            return response()->json(['message' => 'Deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 }
