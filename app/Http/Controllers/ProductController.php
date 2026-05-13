@@ -1,5 +1,3 @@
-<?php
-
 namespace App\Http\Controllers;
 
 use App\Service\ProductService;
@@ -24,15 +22,16 @@ class ProductController extends Controller
     {
         return $this->productService->createProduct($request->all());
     }
+}
 
-    public function show(string $uuid)
-    {
-        return $this->productService->getProduct($uuid);
-    }
-
-    public function update(Request $request, string $uuid)
-    {
-        return $this->productService->updateProduct($uuid, $request->all());
+    public function update(Request $request, $id) {
+        try {
+            $product = Product::findOrFail($id);
+            $product->update($request->only(['name', 'price']));
+            return response()->json($product);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy(string $uuid)
