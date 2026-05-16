@@ -45,4 +45,37 @@ class OrderRepository
             ->latest()
             ->get();
     }
+
+    public function getSummaryData(string $from, string $to)
+    {
+        $to .= ' 23:59:59';
+        
+        $revenue = Order::whereBetween('created_at', [$from, $to])->sum('total_amount');
+        
+        $customerCount = Order::whereBetween('created_at', [$from, $to])
+            ->distinct('customer_id')
+            ->count('customer_id');
+
+        $topProducts = \App\Models\OrderItem::whereHas('order', function($q) use ($from, $to) {
+                $q->whereBetween('created_at', [$from, $to]);
+            })
+            ->select('product_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as total_quantity'))
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->with('product')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'name' => $item->product->name,
+                    'total_quantity' => (int) $item->total_quantity,
+                ];
+            });
+
+        return [
+            'total_revenue' => (float) $revenue,
+            'customer_count' => $customerCount,
+            'top_products' => $topProducts,
+        ];
+    }
 }

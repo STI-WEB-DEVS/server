@@ -102,4 +102,9 @@ class OrderService
         $this->orderRepository->delete($uuid);
         return true;
     }
+
+    public function getOrderSummary(string $from, string $to)
+    {
+        return $this->orderRepository->getSummaryData($from, $to);
+    }
 }

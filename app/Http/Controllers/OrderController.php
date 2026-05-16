@@ -51,4 +51,20 @@ class OrderController extends Controller
     {
         return $this->orderService->getOrdersByCustomer($uuid);
     }
+
+    // Get order summary for dashboard
+    public function getSummary(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|date',
+            'to'   => 'required|date|after_or_equal:from',
+        ]);
+
+        $summary = $this->orderService->getOrderSummary(
+            $request->input('from'),
+            $request->input('to')
+        );
+
+        return response()->json($summary);
+    }
 }

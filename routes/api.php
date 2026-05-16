@@ -14,6 +14,8 @@ use Illuminate\Http\JsonResponse;
 
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/order/summary', [OrderController::class, 'getSummary']);
+
 Route::apiResources([
     'companies'   => CompanyController::class,
     'languages'   => LanguageController::class,
