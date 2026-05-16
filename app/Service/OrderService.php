@@ -52,7 +52,9 @@ class OrderService
             }
 
             $order->update(['total_amount' => $total]);
-            return new OrderResource($order);
+
+            // Ensure relations are loaded so the resource includes items and customer
+            return new OrderResource($order->fresh(['customer', 'items.product']));
         }
             
     }
