@@ -47,7 +47,22 @@ class OrderController extends Controller
     }
 
     public function customerOrders($uuid)
-{
+    {
     return $this->orderService->getOrdersByCustomer($uuid);
-}
+    }
+
+    public function summary(Request $request): JsonResponse
+    {
+        $request->validate([
+            'from' => 'nullable|date_format:Y-m-d',
+            'to' => 'nullable|date_format:Y-m-d|after_or_equal:from',
+        ]);
+    
+        $data = $this->orderService->getOrderSummary(
+            $request->input('from'),
+            $request->input('to')
+        );
+
+        return response()->json($data);
+    }
 }

@@ -101,11 +101,16 @@ return new \App\Http\Resources\OrderResource($order->fresh());
     }
 
     public function getOrdersByCustomer(string $customerUuid)
-{
-    $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+    {
+        $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
 
-    $orders = $this->orderRepository->getOrdersByCustomer($customer->id);
+        $orders = $this->orderRepository->getOrdersByCustomer($customer->id);
 
-    return OrderResource::collection($orders);
-}
+        return OrderResource::collection($orders);
+    }
+
+    public function getOrderSummary(?string $from, ?string $to):array
+    {
+        return $this->orderRepository->getSummary($from, $to);
+    }
 }
