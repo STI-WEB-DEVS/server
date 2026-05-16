@@ -30,6 +30,11 @@ class OrderController extends Controller
         return $this->orderService->getOrder($uuid);
     }
 
+    public function summary(Request $request)
+    {
+        return $this->orderService->getSummary($request->only(['from', 'to']));
+    }
+
     public function destroy(string $uuid)
     {
         $this->orderService->deleteOrder($uuid);

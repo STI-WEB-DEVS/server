@@ -18,6 +18,8 @@ Route::apiResources([
     'orders' => OrderController::class,
 ]);
 
+Route::get('/summary', [OrderController::class, 'summary']);
+
 // Order list per customer
 Route::get('/orders/{customeruuid}/customers', [OrderController::class, 'listByCustomer']);
 
