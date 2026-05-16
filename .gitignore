@@ -23,3 +23,12 @@ yarn-error.log
 /.zed
 api_docs.md
 
+# Laravel Boost
+.agents/
+.codex/
+.cursor/
+.gemini/
+.github/skills/
+AGENTS.md
+GEMINI.md
+boost.json
