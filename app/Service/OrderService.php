@@ -61,6 +61,15 @@ class OrderService
         return new OrderResource($model);
     }
 
+    public function getOrderSummary(string $from, string $to)
+    {
+        // Set the time explicitly to cover the entire start and end days
+        $from = $from . ' 00:00:00';
+        $to = $to . ' 23:59:59';
+
+        return $this->orderRepository->getSummary($from, $to);
+    }
+
     public function listOrdersByCustomer(string $customerUuid, int $perPage = 15)
     {
         $collection = $this->orderRepository->findByCustomerUuid($customerUuid, $perPage);

@@ -20,6 +20,18 @@ class OrderController extends Controller
         return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
+    public function summary(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|date',
+            'to' => 'required|date|after_or_equal:from',
+        ]);
+
+        return response()->json(
+            $this->orderService->getOrderSummary($request->input('from'), $request->input('to'))
+        );
+    }
+
     public function store(OrderStoreRequest $request)
     {
         return $this->orderService->createOrder($request->validated());

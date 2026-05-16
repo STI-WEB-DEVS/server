@@ -36,6 +36,29 @@ class OrderRepository
             ->paginate($perPage);
     }
 
+    public function getSummary(string $from, string $to)
+    {
+        $revenue = Order::whereBetween('created_at', [$from, $to])->sum('total_amount');
+        
+        $customersCount = Order::whereBetween('created_at', [$from, $to])->distinct('customer_id')->count('customer_id');
+
+        $topProducts = \Illuminate\Support\Facades\DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->select('products.name', \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_quantity'), \Illuminate\Support\Facades\DB::raw('SUM(order_items.unit_price * order_items.quantity) as total_revenue'))
+            ->whereBetween('orders.created_at', [$from, $to])
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get();
+
+        return [
+            'revenue' => $revenue,
+            'customers_count' => $customersCount,
+            'top_products' => $topProducts
+        ];
+    }
+
     public function update(string $uuid, array $payload)
     {
         $model = $this->findByUuid($uuid);

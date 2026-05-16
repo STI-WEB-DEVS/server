@@ -9,11 +9,14 @@ class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $customer = $this->customer_id ? \App\Models\Customer::find($this->customer_id) : null;
+        
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
             'company_id' => $this->company_id,
             'customer_id' => $this->customer_id,
+            'customer_uuid' => $customer ? $customer->uuid : null,
             'name' => $this->name,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at,

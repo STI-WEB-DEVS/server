@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/orders/summary', [OrderController::class, 'summary']);
+
 Route::apiResources([
     'companies' => CompanyController::class,
     'languages' => LanguageController::class,
