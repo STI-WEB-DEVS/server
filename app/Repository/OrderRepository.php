@@ -48,4 +48,40 @@ class OrderRepository
         $model = $this->findByUuid($uuid);
         return $model->delete();
     }
+
+    public function getSummary(array $filters = [])
+    {
+        $query = Order::query();
+        $itemQuery = \App\Models\OrderItem::query();
+
+        if (!empty($filters['from'])) {
+            $query->whereDate('created_at', '>=', $filters['from']);
+            $itemQuery->whereHas('order', function($q) use ($filters) {
+                $q->whereDate('created_at', '>=', $filters['from']);
+            });
+        }
+
+        if (!empty($filters['to'])) {
+            $query->whereDate('created_at', '<=', $filters['to']);
+            $itemQuery->whereHas('order', function($q) use ($filters) {
+                $q->whereDate('created_at', '<=', $filters['to']);
+            });
+        }
+
+        $totalAmount = $query->sum('total_amount');
+        $customersCount = $query->distinct('customer_id')->count('customer_id');
+        
+        $topProducts = $itemQuery->select('product_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as total_quantity'))
+            ->with('product')
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get();
+
+        return [
+            'total_amount' => $totalAmount,
+            'customers_count' => $customersCount,
+            'top_products' => $topProducts
+        ];
+    }
 }

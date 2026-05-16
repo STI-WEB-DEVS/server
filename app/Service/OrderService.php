@@ -97,4 +97,9 @@ class OrderService
         $this->orderRepository->delete($uuid);
         return true;
     }
+
+    public function getSummary(array $filters = [])
+    {
+        return $this->orderRepository->getSummary($filters);
+    }
 }
