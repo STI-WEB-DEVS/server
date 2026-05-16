@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\OrderItem;
 use App\Repository\OrdersRepository;
 use App\Http\Resources\OrdersResource;
+use App\Http\Resources\OrderSummaryResource;
 
 class OrdersService
 {
@@ -119,5 +120,14 @@ class OrdersService
     {
         $model = $this->ordersRepository->restore($uuid);
         return new OrdersResource($model);
+    }
+    public function getOrderSummary(?string $from, ?string $to)
+    {
+    $from = $from ?? now()->startOfMonth()->toDateString();
+    $to = $to ?? now()->toDateString();
+
+        $summary = $this->ordersRepository->getSummary($from, $to);
+
+        return new OrderSummaryResource($summary);
     }
 }

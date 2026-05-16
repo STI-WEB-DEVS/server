@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Models\Order;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class OrdersRepository
 {
@@ -55,4 +57,83 @@ class OrdersRepository
         $model->restore();
         return $model;
     }
+    public function getDailySalesTrend($fromDate, $toDate)
+    {
+        return Order::query()
+            ->whereBetween('created_at', [$fromDate, $toDate])
+            ->selectRaw('DATE(created_at) as date')
+            ->selectRaw('SUM(total_amount) as sales')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+    }
+
+    public function getSummary(string $from, string $to): array
+    {
+        $fromDate = Carbon::parse($from)->startOfDay();
+        $toDate = Carbon::parse($to)->endOfDay();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Base Query
+        |--------------------------------------------------------------------------
+        */
+
+        $ordersQuery = Order::query()
+            ->whereBetween('created_at', [$fromDate, $toDate]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Total Sales
+        |--------------------------------------------------------------------------
+        */
+
+        $totalSales = (clone $ordersQuery)
+            ->sum('total_amount');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Total Customers
+        |--------------------------------------------------------------------------
+        */
+
+        $totalCustomers = (clone $ordersQuery)
+            ->distinct('customer_id')
+            ->count('customer_id');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Top Products
+        |--------------------------------------------------------------------------
+        */
+
+        $topProducts = DB::table('order_items')
+            ->join('products', 'products.id', '=', 'order_items.product_id')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->whereBetween('orders.created_at', [$fromDate, $toDate])
+            ->select(
+                'products.id',
+                'products.name',
+                DB::raw('SUM(order_items.quantity) as total_quantity')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get();
+
+        $dailySalesTrend = $this->getDailySalesTrend(
+            $fromDate,
+            $toDate
+        );
+
+        return [
+            'from' => $fromDate,
+            'to' => $toDate,
+            'total_sales' => $totalSales,
+            'total_customers' => $totalCustomers,
+            'top_products' => $topProducts,
+            'daily_sales_trend' => $dailySalesTrend,
+        ];
+    }
 }
+

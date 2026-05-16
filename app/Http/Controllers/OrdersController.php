@@ -59,4 +59,11 @@ class OrdersController extends Controller
     {
         return $this->ordersService->restoreOrders($uuid);
     }
+    public function summary(Request $request)
+    {
+        return $this->ordersService->getOrderSummary(
+            $request->input('from'),
+            $request->input('to')
+        );
+}
 }

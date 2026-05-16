@@ -15,6 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/logout', [AuthController::class, 'logout']);
 
     Route::get('/orders/customer/{customerUuid}', [OrdersController::class, 'byCustomer']);
+    Route::get('/orders/summary', [OrdersController::class, 'summary']);
 
     Route::apiResources([
         'companies' => CompanyController::class,
