@@ -28,11 +28,11 @@ class OrderController extends Controller
         return $this->orderService->createOrder($request->validated());
     }
 
-    public function show(CustomerOrderListRequest $request, string $uuid)
+    public function show(string $uuid)
     {
-        $perPage = $request->validated('per_page') ?? 15;
-        return $this->orderService->listCustomerOrders($uuid, $perPage);
+        return $this->orderService->getOrder($uuid);
     }
+
 
     public function update(OrderUpdateRequest $request, string $uuid)
     {
