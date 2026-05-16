@@ -3,9 +3,9 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\API\CustomerController;
 use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\OrderController; 
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,11 +21,14 @@ Route::get('/test', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/logout', [AuthController::class, 'logout']);
 
+    // Whiteboard Requirement: Custom explicit route for the Date Range Order Analytics Summary
+    Route::get('/admin/order-summary', [OrderController::class, 'summary']);
+
     Route::apiResources([
         'companies' => CompanyController::class,
         'languages' => LanguageController::class,
         'customers' => CustomerController::class,
         'products' => ProductController::class,
-        'orders' => OrderController::class,
+        'orders' => OrderController::class, 
     ]);
 });

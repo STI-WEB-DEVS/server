@@ -24,7 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'customer_id',
+        'customer_id', // <--- This column connects the user to their customer profile
     ];
 
     protected $hidden = [
@@ -43,5 +43,17 @@ class User extends Authenticatable
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * 1st Bullet Point: Add the customer function
+     */
+    public function customer()
+    {
+        /**
+         * Use belongsTo because the 'customer_id' foreign key 
+         * is located on this User model's table.
+         */
+        return $this->belongsTo(Customer::class);
     }
 }
