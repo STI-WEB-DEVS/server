@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderSummaryController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,10 @@ Route::get('/customers/orders/{customerUuid}', [OrderController::class, 'listByC
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/logout', [AuthController::class, 'logout']);
+
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/order/summary', [OrderSummaryController::class, 'index']);
+    });
 
     Route::apiResources([
         'companies' => CompanyController::class,
