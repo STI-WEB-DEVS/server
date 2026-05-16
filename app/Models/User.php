@@ -11,7 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasUuids, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable;
 
     public function uniqueIds()
     {
@@ -20,10 +20,10 @@ class User extends Authenticatable
 
     protected $fillable = [
         'company_id',
+        'customer_id',
         'name',
         'email',
         'password',
-        'customer_id',
     ];
 
     protected $hidden = [
@@ -42,5 +42,10 @@ class User extends Authenticatable
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

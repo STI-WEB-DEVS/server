@@ -17,21 +17,26 @@ class UserService
 
     public function loginUser(object $payload)
     {
-        if (empty($payload->email) || empty($payload->password)) {
+        $email = $payload->input('email');
+        $password = $payload->input('password');
+
+        if (empty($email) || empty($password)) {
             return response()->json(['message' => 'Email and password are required'], 400);
         }
 
-        $user = $this->userRepository->findByField('email', $payload->email);
+        $user = $this->userRepository->findByField('email', $email);
 
         if (! $user) {
             return response()->json(['message' => 'User not found'], 401);
         }
 
-        if (! Hash::check($payload->password, $user->password)) {
+        if (! Hash::check($password, $user->password)) {
             return response()->json(['message' => 'Invalid password'], 401);
         }
 
         $token = $user->createToken($user->email)->plainTextToken;
+
+        $user->load('customer');
 
         return response()->json([
             'user' => new UserResource($user),
