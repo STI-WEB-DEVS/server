@@ -105,4 +105,14 @@ class OrderService
         $model = $this->orderRepository->restore($uuid);
         return new OrderResource($model);
     }
+
+    public function getDashboardStats($from, $to)
+    {
+        return [
+            'total_revenue' => $this->orderRepository->getTotalRevenue($from, $to),
+            'customer_count' => $this->orderRepository->getCustomerCount($from, $to),
+            'top_products' => $this->orderRepository->getTopProducts($from, $to),
+            'recent_orders' => $this->orderRepository->getRecentOrders($from, $to),
+        ];
+    }
 }

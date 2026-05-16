@@ -63,4 +63,35 @@ class OrderRepository
             ->where('customer_id', $customerId)
             ->get();
     }
+
+    public function getTotalRevenue($from, $to)
+    {
+        return Order::whereBetween('created_at', [$from, $to])->sum('total_amount');
+    }
+
+    public function getCustomerCount($from, $to)
+    {
+        return Order::whereBetween('created_at', [$from, $to])->distinct('customer_id')->count();
+    }
+
+    public function getTopProducts($from, $to, $limit = 5)
+    {
+        return \DB::table('order_items')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->select('products.name', \DB::raw('SUM(order_items.quantity) as total_purchased'))
+            ->whereBetween('order_items.created_at', [$from, $to])
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_purchased')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function getRecentOrders($from, $to, $limit = 5)
+    {
+        return Order::with('customer')
+            ->whereBetween('created_at', [$from, $to])
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
 }
