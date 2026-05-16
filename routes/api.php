@@ -15,5 +15,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('products', ProductController::class);
+    Route::get('orders/summary', [OrderController::class, 'summary']);
     Route::apiResource('orders', OrderController::class);
 });

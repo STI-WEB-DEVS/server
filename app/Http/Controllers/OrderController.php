@@ -15,6 +15,14 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
+    public function summary(Request $request)
+    {
+        $startDate = $request->query('from');
+        $endDate = $request->query('to');
+        
+        return response()->json($this->orderService->getOrderSummary($startDate, $endDate));
+    }
+
     public function index(Request $request)
     {
         $customer = $request->user()->customer;
