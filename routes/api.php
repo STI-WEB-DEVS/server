@@ -6,6 +6,7 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,8 @@ Route::middleware('auth:sanctum')->group(function () {
         'customers' => CustomerController::class,
         'orders' => OrdersController::class,
     ]);
+
+     Route::get('/dashboard/order-summary', [DashboardController::class, 'orderSummary']);
 
 });
 
