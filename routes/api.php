@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CustomersController;
@@ -10,6 +11,8 @@ use App\Http\Controllers\OrderItemController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/orders/revenue', [DashboardController::class, 'analytics']);
 
 Route::apiResources([
     'companies' => CompanyController::class,
