@@ -41,6 +41,13 @@ class CustomerService
     public function updateCustomer(string $uuid, array $payload)
     {
         $model = $this->customerRepository->update($uuid, $payload);
+
+        // Sync email to the linked user account so login still works
+        if (isset($payload['email'])) {
+            \App\Models\User::where('customer_id', $model->id)
+                ->update(['email' => $payload['email']]);
+        }
+
         return new CustomerResource($model);
     }
 

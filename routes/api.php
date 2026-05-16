@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderSummaryController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,7 @@ Route::apiResources([
     'orders'    => OrderController::class,
 ]);
 
+Route::get('/order-summary', OrderSummaryController::class);
 
 Route::get('/customers/orders/{customerUuid}', [OrderController::class, 'listByCustomer']);
 

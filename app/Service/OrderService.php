@@ -72,4 +72,14 @@ class OrderService
         $this->orderRepository->delete($uuid);
         return true;
     }
+
+    public function getSummary(string $from, string $to): array
+    {
+        return [
+            'total_revenue'    => $this->orderRepository->getRevenueByDateRange($from, $to),
+            'total_orders'     => $this->orderRepository->getOrderCountByDateRange($from, $to),
+            'customer_count'   => $this->orderRepository->getCustomerCountByDateRange($from, $to),
+            'top_products'     => $this->orderRepository->getTopProductsByDateRange($from, $to),
+        ];
+    }
 }
