@@ -19,12 +19,30 @@ class OrdersRepository
     public function create(array $payload)
     {
         // Resolve customer UUID to numeric id
-        $customer = Customer::where('uuid', $payload['customer_id'])->firstOrFail();
+        $customerUuid = $payload['customer_uuid'] ?? $payload['customer_id'];
+        
+        // The frontend might have sent the User's UUID instead of the Customer's UUID
+        $user = \App\Models\User::where('uuid', $customerUuid)->first();
+        if ($user) {
+            $customer = $user->customer_id ? Customer::find($user->customer_id) : null;
+            
+            // If the customer doesn't exist in the database (data inconsistency), create it
+            if (!$customer) {
+                $customer = Customer::firstOrCreate(
+                    ['email' => $user->email],
+                    ['name' => $user->name]
+                );
+                $user->update(['customer_id' => $customer->id]);
+            }
+        } else {
+            $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
+        }
     
-        // Calculate total using product_id (numeric)
+        // Calculate total using product
         $total = 0;
         foreach ($payload['items'] as $item) {
-            $product = Product::findOrFail($item['product_id']); // numeric id
+            $productUuid = $item['product_uuid'] ?? $item['product_id'];
+            $product = Product::where('uuid', $productUuid)->firstOrFail();
             $total += $product->price * $item['quantity'];
         }
     
@@ -36,7 +54,8 @@ class OrdersRepository
     
         // Create order items
         foreach ($payload['items'] as $item) {
-            $product = Product::findOrFail($item['product_id']); // numeric id
+            $productUuid = $item['product_uuid'] ?? $item['product_id'];
+            $product = Product::where('uuid', $productUuid)->firstOrFail();
     
             OrderItem::create([
                 'order_id'   => $order->id,
