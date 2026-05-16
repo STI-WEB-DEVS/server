@@ -2,47 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Service\OrdersService;
+use App\Http\Requests\OrderStoreRequest;
+use App\Service\OrderService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
-class OrdersController extends Controller
+class OrderController extends Controller
 {
-    private OrdersService $ordersService;
+    private OrderService $orderService;
 
-    public function __construct(OrdersService $ordersService)
+    public function __construct(OrderService $orderService)
     {
-        $this->ordersService = $ordersService;
+        $this->orderService = $orderService;
     }
 
+    // List all orders (paginated)
     public function index(Request $request)
     {
-        return $this->ordersService->listOrders($request->input('per_page', 15));
+        return $this->orderService->listOrder($request->input('per_page', 15));
     }
 
-    public function store(Request $request)
+    // Create a new order (always creates, never overwrites)
+    public function store(OrderStoreRequest $request)
     {
-        return $this->ordersService->createOrders($request->all());
+        return $this->orderService->createOrder($request->validated());
     }
 
+    // Show a single order by UUID
     public function show(string $uuid)
     {
-        return $this->ordersService->getOrders($uuid);
+        return $this->orderService->getOrder($uuid);
     }
 
-    public function update(Request $request, string $uuid)
-    {
-        return $this->ordersService->updateOrders($uuid, $request->all());
-    }
-
+    // Delete an order by UUID
     public function destroy(string $uuid)
     {
-        $this->ordersService->deleteOrders($uuid);
+        $this->orderService->deleteOrder($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-    
-    public function restore(string $uuid)
+
+    // List orders by customer (paginated)
+    public function listByCustomer(Request $request, string $customerUuid)
     {
-        return $this->ordersService->restoreOrders($uuid);
+        return $this->orderService->listOrdersByCustomer($customerUuid, $request->input('per_page', 15));
+    }
+
+    // Get all orders for a customer (non-paginated)
+    public function getByCustomer(string $uuid)
+    {
+        return $this->orderService->getOrdersByCustomer($uuid);
+    }
+
+    // Get order summary for dashboard
+    public function getSummary(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|date',
+            'to'   => 'required|date|after_or_equal:from',
+        ]);
+
+        $summary = $this->orderService->getOrderSummary(
+            $request->input('from'),
+            $request->input('to')
+        );
+
+        return response()->json($summary);
     }
 }

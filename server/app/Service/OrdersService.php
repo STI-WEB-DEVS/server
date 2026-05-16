@@ -2,88 +2,109 @@
 
 namespace App\Service;
 
-use App\Repository\OrdersRepository;
-use App\Http\Resources\OrdersResource;
+use App\Repository\OrderRepository;
+use App\Repository\CustomersRepository;
+use App\Repository\OrderItemRepository;
+use App\Repository\ProductsRepository;
+use App\Http\Resources\OrderResource;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-class OrdersService
+class OrderService
 {
-    private OrdersRepository $ordersRepository;
+    private OrderRepository $orderRepository;
+    private CustomersRepository $customersRepository;
+    private OrderItemRepository $orderItemRepository;
+    private ProductsRepository $productsRepository;
 
-    public function __construct(OrdersRepository $ordersRepository) 
-    {
-        $this->ordersRepository = $ordersRepository;
+    public function __construct(
+        OrderRepository $orderRepository,
+        CustomersRepository $customersRepository,
+        OrderItemRepository $orderItemRepository,
+        ProductsRepository $productsRepository
+    ) {
+        $this->orderRepository = $orderRepository;
+        $this->customersRepository = $customersRepository;
+        $this->orderItemRepository = $orderItemRepository;
+        $this->productsRepository = $productsRepository;
     }
 
-    public function listOrders(int $perPage = 15)
+    public function listOrder(int $perPage = 15)
     {
-        $collection = $this->ordersRepository->paginate($perPage);
-        return OrdersResource::collection($collection);
+        $collection = $this->orderRepository->paginate($perPage);
+        return OrderResource::collection($collection);
     }
 
-    public function createOrders(array $payload)
+    public function createOrder(array $payload)
     {
-        $model = $this->ordersRepository->create($payload);
-        return new OrdersResource($model);
+        $customer = $this->customersRepository->findByUuid($payload['customer_uuid']);
+
+        if (empty($payload['items'])) {
+            throw new \InvalidArgumentException('Order must contain at least one item.');
+        }
+
+        return DB::transaction(function () use ($customer, $payload) {
+            $totalAmount = 0;
+            $items = [];
+
+            foreach ($payload['items'] as $item) {
+                $product = $this->productsRepository->findByUuid($item['product_uuid']);
+                $totalAmount += $product->price * $item['quantity'];
+
+                $items[] = [
+                    'product_id' => $product->id,
+                    'quantity'   => $item['quantity'],
+                    'unit_price' => $product->price,
+                ];
+            }
+
+            // Always create a new order with a unique UUID
+            $order = $this->orderRepository->create([
+                'uuid'         => Str::uuid(),
+                'customer_id'  => $customer->id,
+                'total_amount' => $totalAmount,
+                'status'       => $payload['status'] ?? 'pending',
+            ]);
+
+            foreach ($items as $item) {
+                $this->orderItemRepository->create([
+                    'order_id'   => $order->id,
+                    'product_id' => $item['product_id'],
+                    'quantity'   => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                ]);
+            }
+
+            return new OrderResource($order);
+        });
     }
 
-    public function getOrders(string $uuid)
+    public function getOrder(string $uuid)
     {
-        $model = $this->ordersRepository->findByUuid($uuid);
-        return new OrdersResource($model);
+        $model = $this->orderRepository->findByUuid($uuid);
+        return new OrderResource($model);
     }
 
-    public function getOrdersByField(string $field, $value)
+    public function getOrdersByCustomer(string $uuid)
     {
-        $model = $this->ordersRepository->findByField($field, $value);
-        return new OrdersResource($model);
+        $customer = $this->customersRepository->findByUuid($uuid);
+        $orders = $this->orderRepository->findByCustomerId($customer->id);
+        return OrderResource::collection($orders);
     }
 
-    public function updateOrders(string $uuid, array $payload)
+    public function updateOrder(string $uuid, array $payload)
     {
-        $model = $this->ordersRepository->update($uuid, $payload);
-        return new OrdersResource($model);
+        // Keep your existing update logic here if you want to support editing orders
     }
 
-    public function deleteOrders(string $uuid)
+    public function deleteOrder(string $uuid)
     {
-        $this->ordersRepository->delete($uuid);
+        $this->orderRepository->delete($uuid);
         return true;
     }
 
-    public function restoreOrders(string $uuid)
+    public function getOrderSummary(string $from, string $to)
     {
-        $model = $this->ordersRepository->restore($uuid);
-        return new OrdersResource($model);
-    }
-    public function getCustomerOrders(string $uuid)
-    {
-        $customer = Customer::where('uuid', $uuid)->firstOrFail();
-
-        // ✅ This is where your line goes
-        $orders = $customer->orders()->with(['items.product'])->get();
-
-        return [
-            'customer' => [
-                'uuid' => $customer->uuid,
-                'name' => $customer->name,
-                'email' => $customer->email,
-            ],
-            'orders' => $orders->map(function ($order) {
-                return [
-                    'uuid' => $order->uuid,
-                    'total_amount' => $order->total_amount,
-                    'created_at' => $order->created_at,
-                    'items' => $order->items->map(function ($item) {
-                        return [
-                            'product_uuid' => $item->product->uuid,
-                            'product_name' => $item->product->name,
-                            'quantity' => $item->quantity,
-                            'unit_price' => $item->unit_price,
-                            'subtotal' => $item->quantity * $item->unit_price,
-                        ];
-                    }),
-                ];
-            }),
-        ];
+        return $this->orderRepository->getSummaryData($from, $to);
     }
 }

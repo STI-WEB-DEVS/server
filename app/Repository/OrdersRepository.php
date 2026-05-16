@@ -19,12 +19,12 @@ class OrdersRepository
     public function create(array $payload)
     {
         // Resolve customer UUID to numeric id
-        $customer = Customer::where('uuid', $payload['customer_id'])->firstOrFail();
+    $customer = Customer::findOrFail($payload['customer_id']);
     
         // Calculate total using product_id (numeric)
         $total = 0;
         foreach ($payload['items'] as $item) {
-            $product = Product::findOrFail($item['product_id']); // numeric id
+$product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
             $total += $product->price * $item['quantity'];
         }
     
@@ -36,7 +36,7 @@ class OrdersRepository
     
         // Create order items
         foreach ($payload['items'] as $item) {
-            $product = Product::findOrFail($item['product_id']); // numeric id
+   $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
     
             OrderItem::create([
                 'order_id'   => $order->id,
@@ -81,4 +81,45 @@ class OrdersRepository
         $model->restore();
         return $model;
     }
+
+    public function getSummary(string $from, string $to)
+{
+    $from = $from . ' 00:00:00';
+    $to = $to . ' 23:59:59';
+
+    $revenue = Order::whereBetween('created_at', [$from, $to])
+        ->sum('total_amount');
+
+    $customerCount = Order::whereBetween('created_at', [$from, $to])
+        ->distinct('customer_id')
+        ->count('customer_id');
+
+    $topProducts = OrderItem::whereHas('order', function ($q) use ($from, $to) {
+            $q->whereBetween('created_at', [$from, $to]);
+        })
+        ->select(
+            'product_id',
+            \Illuminate\Support\Facades\DB::raw('SUM(quantity) as total_quantity'),
+            \Illuminate\Support\Facades\DB::raw('SUM(quantity * unit_price) as total_revenue')
+        )
+        ->groupBy('product_id')
+        ->orderByDesc('total_quantity')
+        ->limit(5)
+        ->with('product')
+        ->get()
+        ->map(function ($item) {
+            return [
+                'product_id' => $item->product_id,
+                'product_name' => $item->product?->name ?? 'Unknown Product',
+                'total_quantity' => (int) $item->total_quantity,
+                'total_revenue' => (float) $item->total_revenue,
+            ];
+        });
+
+    return [
+        'total_revenue' => (float) $revenue,
+        'total_customers' => $customerCount,
+        'top_products' => $topProducts,
+    ];
+}
 }

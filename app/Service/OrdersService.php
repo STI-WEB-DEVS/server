@@ -86,4 +86,9 @@ class OrdersService
             }),
         ];
     }
+
+public function getOrderSummary(string $from, string $to)
+{
+    return $this->ordersRepository->getSummary($from, $to);
+}
 }

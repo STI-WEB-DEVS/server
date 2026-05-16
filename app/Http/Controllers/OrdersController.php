@@ -45,4 +45,19 @@ class OrdersController extends Controller
     {
         return $this->ordersService->restoreOrders($uuid);
     }
+
+public function getSummary(Request $request)
+{
+    $request->validate([
+        'from' => 'required|date',
+        'to'   => 'required|date|after_or_equal:from',
+    ]);
+
+    $summary = $this->ordersService->getOrderSummary(
+        $request->input('from'),
+        $request->input('to')
+    );
+
+    return response()->json($summary);
+}
 }
