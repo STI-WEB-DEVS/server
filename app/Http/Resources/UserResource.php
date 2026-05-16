@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'updated_at' => $this->updated_at,
 
             'role' => $this->getRoleNames()->first(),
+            'customer_uuid' => $this->customer?->uuid,
         ];
     }
 }

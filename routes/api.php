@@ -7,6 +7,7 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,4 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // If you want a custom route for listing orders per customer:
     Route::get('/customers/{id}/orders', [CustomersController::class, 'orders']);
+
+    // Dashboard analytics
+    Route::get('/summary', [DashboardController::class, 'summary']);
+    Route::get('/weekly-chart', [DashboardController::class, 'weeklyChart']);
 });
