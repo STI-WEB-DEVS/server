@@ -20,9 +20,10 @@ class OrderResource extends JsonResource
             'customer_name' => $this->customer?->name,
             'customer_id' => $this->customer_id,
             'order_items' => OrderItemResource::collection($this->whenLoaded('items')),
-            'total_amount' => $this->items->sum(function ($item) {
+            'total_amount' => $this->total_amount ?? $this->items->sum(function ($item) {
                 return $item->quantity * $item->unit_price;
             }),
+            'created_at' => $this->created_at,
         ];
     }
 }

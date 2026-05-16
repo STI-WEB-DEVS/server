@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OrderSummaryResource;
 use App\Service\OrderService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -27,7 +28,7 @@ class OrderSummaryController extends Controller
         $fromDateTime = Carbon::parse($from)->startOfDay();
         $toDateTime = Carbon::parse($to)->endOfDay();
 
-        return response()->json(
+        return new OrderSummaryResource(
             $this->orderService->getDashboardStats($fromDateTime, $toDateTime)
         );
     }

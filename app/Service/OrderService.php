@@ -16,8 +16,8 @@ class OrderService
     private OrderItemRepository $orderItemRepository;
 
     public function __construct(
-        OrderRepository $orderRepository, 
-        CustomerRepository $customerRepository, 
+        OrderRepository $orderRepository,
+        CustomerRepository $customerRepository,
         ProductRepository $productRepository,
         OrderItemRepository $orderItemRepository
     ) {
@@ -50,12 +50,12 @@ class OrderService
         // Calculate total amount and prepare order items
         foreach ($payload['products'] as $productItem) {
             $product = $this->productRepository->findByUuid($productItem['product_uuid']);
-            
+
             $quantity = $productItem['quantity'];
             $price = $product->price;
-            
+
             $totalAmount += ($price * $quantity);
-            
+
             $orderItemsData[] = [
                 'product_id' => $product->id,
                 'quantity' => $quantity,
@@ -111,8 +111,10 @@ class OrderService
         return [
             'total_revenue' => $this->orderRepository->getTotalRevenue($from, $to),
             'customer_count' => $this->orderRepository->getCustomerCount($from, $to),
+            'order_count' => $this->orderRepository->getOrderCount($from, $to),
             'top_products' => $this->orderRepository->getTopProducts($from, $to),
             'recent_orders' => $this->orderRepository->getRecentOrders($from, $to),
         ];
     }
 }
+

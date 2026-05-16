@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Models\Order;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
 class OrderRepository
 {
@@ -74,11 +75,17 @@ class OrderRepository
         return Order::whereBetween('created_at', [$from, $to])->distinct('customer_id')->count();
     }
 
-    public function getTopProducts($from, $to, $limit = 5)
+    public function getOrderCount($from, $to)
     {
-        return \DB::table('order_items')
+        return Order::whereBetween('created_at', [$from, $to])->count();
+    }
+
+    public function getTopProducts($from, $to, $limit = 5)
+
+    {
+        return DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->select('products.name', \DB::raw('SUM(order_items.quantity) as total_purchased'))
+            ->select('products.name', DB::raw('SUM(order_items.quantity) as total_purchased'))
             ->whereBetween('order_items.created_at', [$from, $to])
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('total_purchased')

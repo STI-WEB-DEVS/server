@@ -14,6 +14,12 @@ class OrderSummaryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'total_revenue' => $this['total_revenue'],
+            'customer_count' => $this['customer_count'],
+            'order_count' => $this['order_count'],
+            'top_products' => $this['top_products'],
+            'recent_orders' => $this['recent_orders'],
+        ];
     }
 }
