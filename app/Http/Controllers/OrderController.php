@@ -46,7 +46,7 @@ class OrderController extends Controller
             'customer_uuid' => 'required_without:customer_id|uuid|exists:customers,uuid',
             'total_amount' => 'required|numeric|min:0',
             'items' => 'required|array|min:1',
-            'items.*.product_uuid' => 'required|uuid|exists:products,uuid',
+            'items.*.product_uuid' => 'required|string|exists:products,uuid',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
