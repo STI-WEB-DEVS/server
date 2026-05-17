@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/orders/summary', [OrderController::class, 'summary']);
+
 Route::apiResources([
     'companies' => CompanyController::class,
     'languages' => LanguageController::class,
@@ -18,9 +20,10 @@ Route::apiResources([
     'orders'    => OrderController::class,
 ]);
 
-
 Route::get('/customers/orders/{customerUuid}', [OrderController::class, 'listByCustomer']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/logout', [AuthController::class, 'logout']);
 });
+
+

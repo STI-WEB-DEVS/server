@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -14,13 +15,30 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Seed roles first
+        $this->call(RoleSeeder::class);
 
-        User::factory()->create([
-            'uuid' => (string) Str::uuid(),
-            'name' => 'Test User',
-            'email' => 'test@cs.com',
-            'password' => Hash::make('password'),
-        ]);
+        // Seed a customer for the test user
+        $customer = Customer::firstOrCreate(
+            ['email' => 'test@cs.com'],
+            [
+                'name' => 'Test Customer',
+            ]
+        );
+
+        // Seed the test user
+        $user = User::updateOrCreate(
+            ['email' => 'test@cs.com'],
+            [
+                'uuid' => (string) Str::uuid(),
+                'name' => 'Test User',
+                'password' => Hash::make('password'),
+                'customer_id' => $customer->id,
+            ]
+        );
+
+        // Assign customer role to the user
+        $user->assignRole('customer');
     }
 }
+
