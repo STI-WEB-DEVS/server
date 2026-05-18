@@ -33,19 +33,40 @@ class OrderService
                 'total_amount' => 0,
             ]);
 
+            // Gather all product UUIDs
+            $productUuids = array_column($payload['items'], 'product_uuid');
+
+            // Query all products at once
+            $products = Product::whereIn('uuid', $productUuids)->get()->keyBy('uuid');
+
+            $orderItems = [];
             $total = 0;
+
             foreach ($payload['items'] as $item) {
-                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+                $uuid = $item['product_uuid'];
+                if (!$products->has($uuid)) {
+                    throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Product with UUID {$uuid} not found.");
+                }
+
+                $product = $products->get($uuid);
                 $unitPrice = $product->price;
                 $quantity  = $item['quantity'];
 
-                $order->items()->create([
+                $orderItems[] = [
+                    'order_id'   => $order->id,
                     'product_id' => $product->id,
                     'quantity'   => $quantity,
                     'unit_price' => $unitPrice,
-                ]);
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
 
                 $total += $unitPrice * $quantity;
+            }
+
+            // Batch insert all order items in a single query
+            if (!empty($orderItems)) {
+                \App\Models\OrderItem::insert($orderItems);
             }
 
             $order->update(['total_amount' => $total]);
@@ -71,5 +92,57 @@ class OrderService
     {
         $this->orderRepository->delete($uuid);
         return true;
+    }
+
+    public function getSummary(string $from = null, string $to = null, string $customerUuid = null)
+    {
+        $query = \App\Models\Order::query();
+
+        if ($from) {
+            $query->whereDate('created_at', '>=', $from);
+        }
+
+        if ($to) {
+            $query->whereDate('created_at', '<=', $to);
+        }
+
+        if ($customerUuid) {
+            $customer = Customer::where('uuid', $customerUuid)->first();
+            if ($customer) {
+                $query->where('customer_id', $customer->id);
+            } else {
+                // No matching customer – return empty summary
+                return [
+                    'total_revenue' => 0.0,
+                    'unique_customers' => 0,
+                    'top_products' => collect([]),
+                ];
+            }
+        }
+
+        $orderIds = $query->pluck('id');
+
+        $totalRevenue = (float) $query->sum('total_amount');
+        $uniqueCustomersCount = $query->distinct('customer_id')->count('customer_id');
+
+        // Top 5 most purchased products
+        $topProducts = DB::table('order_items')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->select('products.name', DB::raw('SUM(order_items.quantity) as total_quantity'))
+            ->whereIn('order_items.order_id', $orderIds)
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get()
+            ->map(function($item) {
+                $item->total_quantity = (int) $item->total_quantity;
+                return $item;
+            });
+
+        return [
+            'total_revenue' => $totalRevenue,
+            'unique_customers' => $uniqueCustomersCount,
+            'top_products' => $topProducts,
+        ];
     }
 }
