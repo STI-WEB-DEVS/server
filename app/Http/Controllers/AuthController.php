@@ -32,10 +32,11 @@ class AuthController extends Controller
     return response()->json([
         'token' => $token,
         'user' => [
-            'uuid'  => $user->uuid,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'roles' => $user->getRoleNames(), // This pulls from Spatie
+            'uuid'          => $user->uuid,
+            'customer_uuid' => $user->customer ? $user->customer->uuid : null,
+            'name'          => $user->name,
+            'email'         => $user->email,
+            'roles'         => $user->getRoleNames(),
         ],
     ]);
 }

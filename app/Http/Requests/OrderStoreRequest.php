@@ -11,7 +11,7 @@ class OrderStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,9 +22,9 @@ class OrderStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_id'         => ['required', 'string', 'exists:customers,uuid'],
+            'customer_uuid'         => ['required', 'string', 'exists:customers,uuid'],
             'items'                 => ['required', 'array', 'min:1'],
-            'items.*.product_id'  => ['required', 'string', 'exists:products,uuid'],
+            'items.*.product_uuid'  => ['required', 'string', 'exists:products,uuid'],
             'items.*.quantity'      => ['required', 'integer', 'min:1'],
         ];
     }

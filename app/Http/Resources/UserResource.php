@@ -11,6 +11,7 @@ class UserResource extends JsonResource
  'uuid' => $this->uuid,
  'company_id' => $this->company_id,
  'customer_id' => $this->customer_id,
+ 'customer_uuid' => $this->customer ? $this->customer->uuid : null,
  'name' => $this->name,
  'email' => $this->email,
  'email_verified_at' => $this->email_verified_at,
