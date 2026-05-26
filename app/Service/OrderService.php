@@ -79,8 +79,6 @@ class OrderService
         return new OrderResource($order);
     }
 
-
-
     public function getOrder(string $uuid)
     {
         $model = $this->orderRepository->findByUuid($uuid);

@@ -36,11 +36,7 @@ class OrderController extends Controller
         }
     
         // 2. Use the customer relationship on your User model 
-        // (Assuming you have a public function customer() defined in your User.php model)
         $customer = $user->customer; 
-    
-        // ALTERNATIVE if you don't have the Eloquent relationship setup yet:
-        // $customer = App\Models\Customer::find($user->customer_id);
     
         if (!$customer || !$customer->uuid) {
             return response()->json(['message' => 'This account is not linked to a valid customer profile.'], 422);
