@@ -6,24 +6,16 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Route::delete('/logout', [AuthController::class, 'logout']);
-
-    // Route::apiResources([
-    //     'companies' => CompanyController::class,
-    //     'languages' => LanguageController::class,
-    // ]);
 
     Route::apiResources([
-        'customers' => CustomerController::class,
-        'products' => ProductController::class,
         'orders' => OrderController::class,
+        'products' => ProductController::class,
+        'customers' => CustomerController::class,
     ]);
-
-    // Get all orders for a specific customer
-    Route::get('/customers/{customerUuid}/orders', [OrderController::class, 'getByCustomer']);
 });
