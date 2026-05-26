@@ -11,15 +11,21 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'customer_id', 'total_amount'];
+    protected $fillable = ['customer_id', 'total_amount', 'items'];
+
+    protected $casts = [
+        'items' => 'array',
+    ];
 
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customer::class);
+
+        return $this->belongsTo(User::class, 'customer_id');
     }
 
-    public function items()
+
+    public function items(): HasMany
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(OrderItem::class, 'order_id');
     }
 }

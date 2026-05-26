@@ -19,7 +19,9 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        return $this->productService->listProduct($request->input('per_page', 15));
+        $products = Product::all();
+        
+        return response()->json($products);
     }
 
     /**

@@ -2,55 +2,57 @@
 
 namespace App\Http\Controllers;
 
-use App\Service\OrderService;
-use App\Http\Requests\OrderStoreRequest;
+use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    private OrderService $orderService;
-
-    public function __construct(OrderService $orderService)
+    public function store(Request $request)
     {
-        $this->orderService = $orderService;
-    }
+        // 1. Validate payload fields
+        $validated = $request->validate([
+            'customer_id'  => 'required',
+            'total_amount' => 'required|numeric',
+            'items'        => 'required|array',
+            'items.*.product_identifier' => 'required',
+            'items.*.product_name'       => 'required|string',
+            'items.*.quantity'           => 'required|integer|min:1',
+            'items.*.price'              => 'required|numeric',
+        ]);
 
-    /**
-     * Display a listing of orders.
-     * Making the parameter optional (?string and = null) fixes the "Too few arguments" error.
-     */
-    public function index(?string $customer_uuid = null) 
-    {
-        // If a UUID is provided in the URL path, filter by customer
-        if ($customer_uuid) {
-            return $this->orderService->getOrdersByCustomer($customer_uuid);
+        // 2. Wrap operations in a transaction for stock tracking safety
+        DB::beginTransaction();
+        try {
+            // Save the parent order row
+            $order = Order::create([
+                'customer_id'  => $validated['customer_id'],
+                'total_amount' => $validated['total_amount'],
+                'items'        => $validated['items'] // Ensure your Order model has 'items' cast to an 'array'
+            ]);
+
+            // 3. Deduct stock quantities from inventory using matching identifier strings
+            foreach ($validated['items'] as $item) {
+                $product = Product::where('uuid', $item['product_identifier'])
+                                  ->orWhere('id', $item['product_identifier'])
+                                  ->first();
+
+                if ($product) {
+                    if ($product->stock >= $item['quantity']) {
+                        $product->decrement('stock', $item['quantity']);
+                    } else {
+                        return response()->json(['message' => "Stock depleted for {$product->name}"], 400);
+                    }
+                }
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Order processed successfully!', 'order' => $order], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Transaction processing dropped.', 'error' => $e->getMessage()], 500);
         }
-
-        // If no UUID is in the path, show all orders
-        return $this->orderService->getAllOrders();
-    }
-
-    /**
-     * Store a newly created order.
-     */
-    public function store(OrderStoreRequest $request) 
-    {
-        return $this->orderService->createOrder($request->validated());
-    }
-
-    public function show(string $uuid)
-    {
-        return $this->orderService->getOrder($uuid);
-    }
-
-    public function update(Request $request, string $uuid)
-    {
-        return $this->orderService->updateOrder($uuid, $request->all());
-    }
-
-    public function destroy(string $uuid)
-    {
-        $this->orderService->deleteOrder($uuid);
-        return response()->json(['message' => 'Order deleted successfully'], 200);
     }
 }
