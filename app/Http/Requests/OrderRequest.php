@@ -1,9 +1,9 @@
 <?php
-
+ 
 namespace App\Http\Requests;
-
+ 
 use Illuminate\Foundation\Http\FormRequest;
-
+ 
 class OrderRequest extends FormRequest
 {
     /**
@@ -11,21 +11,20 @@ class OrderRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Ensure this is set to true so it allows the request through
     }
-
+ 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-           'customer_uuid' => 'required|string|exists:customers,uuid',
-           'items' => 'required|array|min:1',
-           'items.*.product_uuid' => 'required|string|exists:products,uuid',
-           'items.*.quantity' => 'required|integer|min:1',
+            //  REMOVED 'customer_uuid' rule since it's now handled implicitly by auth()
+ 
+            'items'                  => 'required|array|min:1',
+            'items.*.product_uuid'   => 'required|string',
+            'items.*.quantity'       => 'required|integer|min:1',
         ];
     }
 }
