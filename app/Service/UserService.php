@@ -31,6 +31,9 @@ class UserService
             return response()->json(['message' => 'Invalid password'], 401);
         }
 
+        // Load the customer relation before building the resource
+        $user->load('customer');
+
         $token = $user->createToken($user->email)->plainTextToken;
 
         return response()->json([
