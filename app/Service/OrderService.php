@@ -42,12 +42,12 @@ class OrderService
 
     public function createOrder(string $customerUuid, array $items)
     {
-        // Step 1: Verify customer exists by UUID
+        // Step 1: Verify customer exists by their actual CUSTOMER UUID
         $customer = $this->customerRepository->findByUuid($customerUuid);
         if (!$customer) {
-            throw new \Exception("Customer not found");
+            throw new \Exception("Customer profile not found.");
         }
-
+    
         // Step 2: Calculate total
         $total = 0;
         foreach ($items as $item) {
@@ -57,17 +57,17 @@ class OrderService
             }
             $total += $product->price * $item['quantity'];
         }
-
-        // Step 3: Create order
+    
+        // Step 3: Create order (uses the internal auto-increment ID for database relational integrity)
         $order = $this->orderRepository->create([
             'customer_id'  => $customer->id,
             'total_amount' => $total,
         ]);
-
+    
         // Step 4: Create order items
         foreach ($items as $item) {
             $product = $this->productRepository->findByUuid($item['product_uuid']);
-
+    
             $this->orderItemRepository->create([
                 'order_id'   => $order->id,
                 'product_id' => $product->id,
@@ -75,7 +75,7 @@ class OrderService
                 'unit_price' => $product->price,
             ]);
         }
-
+    
         return new OrderResource($order);
     }
 

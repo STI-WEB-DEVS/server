@@ -26,14 +26,36 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-    public function store(OrderStoreRequest $request): JsonResponse
+    public function store(Request $request)
     {
-        $customerUuid = $request->input('customer_uuid');
-        $items        = $request->input('items');
-
-        $order = $this->orderService->createOrder($customerUuid, $items);
-
-        return response()->json($order, 201);
+        // 1. Get the currently logged-in User model via the token
+        $user = $request->user(); 
+    
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+    
+        // 2. Use the customer relationship on your User model 
+        // (Assuming you have a public function customer() defined in your User.php model)
+        $customer = $user->customer; 
+    
+        // ALTERNATIVE if you don't have the Eloquent relationship setup yet:
+        // $customer = App\Models\Customer::find($user->customer_id);
+    
+        if (!$customer || !$customer->uuid) {
+            return response()->json(['message' => 'This account is not linked to a valid customer profile.'], 422);
+        }
+    
+        // 3. Extract the real UUID directly from the customer table row
+        $customerTableUuid = $customer->uuid;
+    
+        try {
+            // Pass the customer's true table UUID securely to your service layer
+            $order = $this->orderService->createOrder($customerTableUuid, $request->input('items'));
+            return $order;
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
 
     public function show(string $uuid): JsonResponse
