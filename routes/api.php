@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'getByCustomer']);
 
 
 
@@ -21,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //     'companies' => CompanyController::class,
     //     'languages' => LanguageController::class,
     // ]);
+    Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'getByCustomer']);
 
     Route::apiResources([
         'customers' => CustomerController::class,
