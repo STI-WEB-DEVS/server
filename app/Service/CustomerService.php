@@ -14,7 +14,7 @@ class CustomerService
         $this->customerRepository = $customerRepository;
     }
 
-    public function listCustomer(int $perPage = 15)
+    public function listCustomers(int $perPage = 15)
     {
         $collection = $this->customerRepository->paginate($perPage);
         return CustomerResource::collection($collection);
