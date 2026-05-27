@@ -30,7 +30,7 @@ class OrderService
     {
         $customer = $this->customerRepository->findByUuid($customerUuid);
 
-        // return $customer->id;
+       
 
         $collection = $this->orderRepository->paginateByCustomer($customer->id, $perPage);
 
@@ -48,7 +48,7 @@ class OrderService
         foreach($items as $item){
             $product = $this->productRepository->findByUuid($item['product_uuid']);
 
-            // return $product->all();
+            
             
             $subtotal = $product->price * $item['quantity'];
             $total += $subtotal;
