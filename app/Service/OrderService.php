@@ -20,8 +20,7 @@ class OrderService
         OrderItemsRepository $orderItemRepository, 
         ProductRepository $productRepository,
         CustomerRepository $customerRepository
-        ) 
-    {
+    ) {
         $this->orderRepository      = $orderRepository;
         $this->orderItemRepository  = $orderItemRepository;
         $this->productRepository    = $productRepository;
@@ -40,42 +39,55 @@ class OrderService
         return OrderResource::collection($orders);
     }
 
+    /**
+     * Creates an order safely using repository patterns and session data.
+     */
+    /**
+     * Creates an order safely, supporting both single and multiple item collections.
+     */
+ /**
+     * Creates an order safely, supporting multiple line items from the authenticated user.
+     */
     public function createOrder(string $customerUuid, array $items)
     {
-        $customer = $this->customerRepository->findByUuid($customerUuid);
-        if (!$customer) {
-            throw new \Exception("Customer not found");
+        // 1. Identify the authenticated customer directly via their account link column
+        $customerId = auth()->user()->customer_id;
+
+        if (!$customerId) {
+            throw new \Exception("The authenticated user account does not have an attached customer profile.");
         }
 
+        // 2. Loop through items to verify each product exists and compile the grand total
         $total = 0;
         foreach ($items as $item) {
             $product = $this->productRepository->findByUuid($item['product_uuid']);
             if (!$product) {
-                throw new \Exception("Product not found");
+                throw new \Exception("Product not found for UUID: " . $item['product_uuid']);
             }
             $total += $product->price * $item['quantity'];
         }
 
+        // 3. Create the parent order (HasUuids trait on the Order model auto-generates the 'uuid' string column)
         $order = $this->orderRepository->create([
-            'customer_id'  => $customer->id,
+            'customer_id'  => $customerId,
             'total_amount' => $total,
         ]);
 
+        // 4. Save each line item safely into your order_items database table
         foreach ($items as $item) {
             $product = $this->productRepository->findByUuid($item['product_uuid']);
-
+            
             $this->orderItemRepository->create([
-                'order_id'   => $order->id,
+                'order_id'   => $order->id, // Links directly to the auto-increment integer id
                 'product_id' => $product->id,
                 'quantity'   => $item['quantity'],
                 'unit_price' => $product->price,
             ]);
         }
 
-        return new OrderResource($order);
+        return new \App\Http\Resources\OrderResource($order);
     }
-
-
+    
 
     public function getOrder(string $uuid)
     {

@@ -30,18 +30,33 @@ class OrderController extends Controller
  
     public function store(OrderRequest $request): JsonResponse
     {
-        //  THE FIX: Grab the logged-in user's UUID from Laravel's Auth guard 
-        // instead of relying on the frontend to send it.
-        $customerUuid = auth()->user()->uuid; 
- 
-        $items = $request->input('items');
- 
-        // This stays completely untouched, but now securely uses the logged-in customer!
-        $order = $this->orderService->createOrder($customerUuid, $items);
- 
-        return response()->json($order, 201);
+        try {
+            // Use the authenticated user's ID, which is safer than relying on a potentially null UUID
+            $user = auth()->user();
+            
+            // Ensure the user actually has an associated customer_id
+            if (!$user->customer_id) {
+                throw new \Exception("Authenticated user has no customer profile linked.");
+            }
+
+            $items = $request->input('items');
+
+            // Proceed to service
+            $order = $this->orderService->createOrder($user->uuid ?? '', $items);
+
+            // Instead of resolving the resource directly, return a simplified success structure
+            return response()->json([
+                'success' => true,
+                'message' => 'Order created successfully'
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Checkout error: ' . $e->getMessage()
+            ], 422);
+        }
     }
- 
     public function show(string $uuid): JsonResponse
     {
         $order = $this->orderService->getOrder($uuid);
