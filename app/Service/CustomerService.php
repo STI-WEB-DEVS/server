@@ -28,7 +28,7 @@ class CustomerService
     {
         $model = $this->customerRepository->create($payload);
 
-        return new CustomerService($model);
+        return new CustomerResource($model);
     }
 
     public function getCustomer(string $uuid)
