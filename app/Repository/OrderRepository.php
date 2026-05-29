@@ -4,32 +4,45 @@ namespace App\Repository;
 
 use App\Models\Order;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 
-class OrdersRepository
+class OrderRepository
 {
     public function paginate(int $perPage = 15)
     {
         return Order::latest()->paginate($perPage);
     }
 
+    public function paginateByCustomer(int $customerId, int $perPage = 15)
+    {
+        return Order::with('items')->where('customer_id', $customerId)->latest()->paginate($perPage);
+    }
+
     public function create(array $payload)
     {
         return Order::create($payload);
     }
-    
-    public function createItem(array $data)
+
+    public function createWithItems(array $orderData, array $itemData)
     {
-        return \App\Models\OrderItem::create($data);
+        return DB::transaction(function () use ($orderData, $itemData){
+            
+            $order = Order::create($orderData);
+
+            $order->items()->createMany($itemData);
+
+            return $order->load('items');
+        });
     }
 
     public function findByUuid(string $uuid)
     {
-        return Order::where('uuid', $uuid)->first();
+        return Order::where('uuid', $uuid)->firstOrFail();
     }
 
     public function findByField(string $field, $value)
     {
-        return Order::where($field, $value)->first();
+        return Order::where($field, $value)->firstOrFail();
     }
 
     public function update(string $uuid, array $payload)
@@ -47,7 +60,7 @@ class OrdersRepository
 
     public function restore(string $uuid)
     {
-        $model = Order::withTrashed()->where('uuid', $uuid)->first();
+        $model = Order::withTrashed()->where('uuid', $uuid)->firstOrFail();
         $model->restore();
         return $model;
     }
