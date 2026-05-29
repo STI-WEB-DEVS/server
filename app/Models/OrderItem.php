@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class OrderItem extends Model
 {
     protected $fillable = [
-        'order_id',
         'product_id',
         'quantity',
         'unit_price',
