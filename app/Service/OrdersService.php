@@ -2,19 +2,21 @@
 
 namespace App\Service;
 
-use App\Models\Order;
-use App\Models\Customer;
-use App\Models\Product;
-use App\Models\OrderItem;
-use App\Repository\OrdersRepository;
-use App\Http\Resources\OrdersResource;
 use App\Http\Resources\OrderSummaryResource;
+use App\Http\Resources\OrdersResource;
+use App\Models\Customer;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Repository\OrdersRepository;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\DB;
 
 class OrdersService
 {
     private OrdersRepository $ordersRepository;
 
-    public function __construct(OrdersRepository $ordersRepository) 
+    public function __construct(OrdersRepository $ordersRepository)
     {
         $this->ordersRepository = $ordersRepository;
     }
@@ -22,18 +24,17 @@ class OrdersService
     public function listOrders(int $perPage = 15)
     {
         $collection = $this->ordersRepository->paginate($perPage);
-        return OrdersResource::collection($collection); 
+        return OrdersResource::collection($collection);
     }
-    
+
     public function listOrdersByCustomerUuid(string $customerUuid, int $perPage = 15)
     {
         $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
 
         $collection = $this->ordersRepository->paginateByCustomerId($customer->id, $perPage);
-        // return OrdersResource::collection($collection);
 
         return [
-            'orders' => $collection->total(), 
+            'orders' => $collection->total(),
             'data' => OrdersResource::collection($collection),
             'links' => [
                 'first' => $collection->url(1),
@@ -60,38 +61,55 @@ class OrdersService
             return response()->json(['message' => 'customer_uuid and items are required'], 422);
         }
 
-        // Find customer by UUID, but use numeric ID for DB
-        $customer = Customer::where('uuid', $data['customer_uuid'])->firstOrFail();
+        $order = DB::transaction(function () use ($data) {
+            $customer = Customer::where('uuid', $data['customer_uuid'])->firstOrFail();
 
-        $totalAmount = 0;
-        // Create order linked to customer (using numeric ID)
-        $order = Order::create([
-            'customer_id' => $customer->id,
-            'total_amount' => 0 // temporary
+            $totalAmount = 0;
 
-        ]);
-
-        // Attach products by resolving UUIDs to IDs
-        foreach ($data['items'] as $item) {
-            $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
-            $lineTotal = $product->price * $item['quantity'];
-            $totalAmount += $lineTotal;
-
-            OrderItem::create([
-                'order_id'   => $order->id,        // ✅ numeric ID
-                'product_id' => $product->id,      // ✅ numeric ID
-                'quantity'   => $item['quantity'],
-                'unit_price' => $product->price,
+            $order = Order::create([
+                'customer_id' => $customer->id,
+                'total_amount' => 0,
             ]);
-        }
 
-        $order->update([
-            'total_amount' => $totalAmount
-        ]);
+            foreach ($data['items'] as $item) {
+                $orderedQuantity = (int) ($item['quantity'] ?? 0);
+                $product = Product::where('uuid', $item['product_uuid'])->lockForUpdate()->firstOrFail();
+
+                if ($orderedQuantity <= 0) {
+                    throw new HttpResponseException(response()->json([
+                        'message' => "Invalid quantity for product {$product->name}.",
+                    ], 422));
+                }
+
+                if ((int) $product->quantity < $orderedQuantity) {
+                    throw new HttpResponseException(response()->json([
+                        'message' => "Insufficient stock for product {$product->name}.",
+                    ], 422));
+                }
+
+                $lineTotal = $product->price * $orderedQuantity;
+                $totalAmount += $lineTotal;
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => $orderedQuantity,
+                    'unit_price' => $product->price,
+                ]);
+
+                $product->decrement('quantity', $orderedQuantity);
+            }
+
+            $order->update([
+                'total_amount' => $totalAmount,
+            ]);
+
+            return $order;
+        });
 
         return $order->load(['customer', 'orderItems.product']);
     }
-    
+
     public function getOrders(string $uuid)
     {
         $model = $this->ordersRepository->findByUuid($uuid);
@@ -121,10 +139,11 @@ class OrdersService
         $model = $this->ordersRepository->restore($uuid);
         return new OrdersResource($model);
     }
+
     public function getOrderSummary(?string $from, ?string $to)
     {
-    $from = $from ?? now()->startOfMonth()->toDateString();
-    $to = $to ?? now()->toDateString();
+        $from = $from ?? now()->startOfMonth()->toDateString();
+        $to = $to ?? now()->toDateString();
 
         $summary = $this->ordersRepository->getSummary($from, $to);
 

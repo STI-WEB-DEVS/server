@@ -23,6 +23,17 @@ class ProductsController extends Controller
 
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^(?=.*[A-Za-z])[A-Za-z0-9 ]+$/',
+            ],
+            'description' => ['required', 'string'],
+            'price' => ['required', 'numeric', 'min:1'],
+            'quantity' => ['required', 'integer', 'min:0'],
+        ]);
         return $this->productsService->createProducts($request->all());
 
     }
@@ -34,6 +45,17 @@ class ProductsController extends Controller
 
     public function update(Request $request, string $uuid)
     {
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^(?=.*[A-Za-z])[A-Za-z0-9 ]+$/',
+            ],
+            'description' => ['required', 'string'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'quantity' => ['required', 'integer', 'min:0'],
+        ]);
         return $this->productsService->updateProducts($uuid, $request->all());
     }
 
