@@ -30,7 +30,19 @@ class ProductsRepository
     public function update(string $uuid, array $payload)
     {
         $model = $this->findByUuid($uuid);
+
+        $addQuantity = 0;
+        if (isset($payload['add_quantity'])) {
+            $addQuantity = (int) $payload['add_quantity'];
+            unset($payload['add_quantity']);
+        }
+
         $model->update($payload);
+
+        if ($addQuantity > 0) {
+            $model->increment('quantity', $addQuantity);
+        }
+
         return $model;
     }
 
