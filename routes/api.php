@@ -20,10 +20,10 @@ Route::apiResources([
     'orders'    => OrderController::class,
 ]);
 
+Route::patch('/products/{uuid}/stock', [ProductController::class, 'adjustStock']); // ← new
+
 Route::get('/customers/orders/{customerUuid}', [OrderController::class, 'listByCustomer']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/logout', [AuthController::class, 'logout']);
 });
-
-

@@ -40,4 +40,14 @@ class ProductController extends Controller
         $this->productService->deleteProduct($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
+
+    // ← new
+    public function adjustStock(Request $request, string $uuid)
+    {
+        $request->validate([
+            'adjustment' => 'required|integer|not_in:0',
+        ]);
+
+        return $this->productService->adjustStock($uuid, (int) $request->input('adjustment'));
+    }
 }
