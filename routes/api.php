@@ -23,6 +23,9 @@ Route::middleware('auth:sanctum')->group(function () {
         'orders'    => OrdersController::class,
     ]);
 
+    // Product restock route
+    Route::post('/products/{uuid}/restock', [ProductsController::class, 'restock']);
+
     // If you want a custom route for listing orders per customer:
     Route::get('/customers/{id}/orders', [CustomersController::class, 'orders']);
 

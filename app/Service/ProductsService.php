@@ -109,4 +109,16 @@ class ProductsService
         $model = $this->productsRepository->restore($uuid);
         return new ProductsResource($model);
     }
+
+    /**
+     * Restock a product by adding quantity to existing stock
+     */
+    public function restockProduct(string $uuid, int $quantity)
+    {
+        $product = $this->productsRepository->findByUuid($uuid);
+        $product->quantity += $quantity;
+        $product->save();
+        
+        return new ProductsResource($product);
+    }
 }

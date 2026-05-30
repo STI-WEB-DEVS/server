@@ -38,6 +38,16 @@ class OrdersRepository
             $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
         }
     
+        // Validate stock availability before creating order
+        foreach ($payload['items'] as $item) {
+            $productUuid = $item['product_uuid'] ?? $item['product_id'];
+            $product = Product::where('uuid', $productUuid)->firstOrFail();
+            
+            if ($product->quantity < $item['quantity']) {
+                throw new \Exception("Insufficient stock for product: {$product->name}. Available: {$product->quantity}, Requested: {$item['quantity']}");
+            }
+        }
+    
         // Calculate total using product
         $total = 0;
         foreach ($payload['items'] as $item) {
@@ -52,7 +62,7 @@ class OrdersRepository
             'total_amount' => $total,
         ]);
     
-        // Create order items
+        // Create order items and reduce stock
         foreach ($payload['items'] as $item) {
             $productUuid = $item['product_uuid'] ?? $item['product_id'];
             $product = Product::where('uuid', $productUuid)->firstOrFail();
@@ -63,6 +73,10 @@ class OrdersRepository
                 'quantity'   => $item['quantity'],
                 'unit_price' => $product->price,
             ]);
+
+            // Reduce product stock
+            $product->quantity -= $item['quantity'];
+            $product->save();
         }
     
         // Return order with items + product relationship

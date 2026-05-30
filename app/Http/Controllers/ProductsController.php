@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Service\ProductsService;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -20,9 +22,9 @@ class ProductsController extends Controller
         return $this->productsService->listProducts($request->input('per_page', 15));
     }
 
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        return $this->productsService->createProducts($request->all());
+        return $this->productsService->createProducts($request->validated());
     }
 
     public function show(string $uuid)
@@ -30,9 +32,9 @@ class ProductsController extends Controller
         return $this->productsService->getProducts($uuid);
     }
 
-    public function update(Request $request, string $uuid)
+    public function update(UpdateProductRequest $request, string $uuid)
     {
-        return $this->productsService->updateProducts($uuid, $request->all());
+        return $this->productsService->updateProducts($uuid, $request->validated());
     }
 
     public function destroy(string $uuid)
@@ -44,5 +46,14 @@ class ProductsController extends Controller
     public function restore(string $uuid)
     {
         return $this->productsService->restoreProducts($uuid);
+    }
+
+    public function restock(Request $request, string $uuid)
+    {
+        $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return $this->productsService->restockProduct($uuid, $request->input('quantity'));
     }
 }
