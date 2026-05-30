@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Service\ProductService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
@@ -22,7 +21,14 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        return $this->productService->createProduct($request->all());
+        $validated = $request->validate([
+            'name'           => ['required', 'string', 'max:255', 'regex:/\p{L}/u'],
+            'description'    => ['nullable', 'string'],
+            'price'          => ['required', 'numeric', 'min:0'],
+            'stock_quantity' => ['required', 'integer', 'min:0'],
+        ]);
+
+        return $this->productService->createProduct($validated);
     }
 
     public function show(string $uuid)
@@ -32,7 +38,14 @@ class ProductController extends Controller
 
     public function update(Request $request, string $uuid)
     {
-        return $this->productService->updateProduct($uuid, $request->all());
+        $validated = $request->validate([
+            'name'           => ['sometimes', 'required', 'string', 'max:255', 'regex:/\p{L}/u'],
+            'description'    => ['nullable', 'string'],
+            'price'          => ['sometimes', 'required', 'numeric', 'min:0'],
+            'stock_quantity' => ['sometimes', 'required', 'integer', 'min:0'],
+        ]);
+
+        return $this->productService->updateProduct($uuid, $validated);
     }
 
     public function destroy(string $uuid)
@@ -40,7 +53,7 @@ class ProductController extends Controller
         $this->productService->deleteProduct($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-    
+
     public function restore(string $uuid)
     {
         return $this->productService->restoreProduct($uuid);

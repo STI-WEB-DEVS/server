@@ -7,6 +7,7 @@ use App\Repository\CustomerRepository;
 use App\Repository\ProductRepository;
 use App\Http\Resources\OrdersResource;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use App\Models\Product;
 use App\Models\Order;
 
@@ -16,15 +17,14 @@ class OrdersService
     private CustomerRepository $customerRepository;
     private ProductRepository $productRepository;
 
-
     public function __construct(
         OrdersRepository $ordersRepository,
         CustomerRepository $customerRepository,
         ProductRepository $productRepository
     ) {
-        $this->ordersRepository = $ordersRepository;
-        $this->customerRepository = $customerRepository;
-        $this->productRepository = $productRepository;
+        $this->ordersRepository    = $ordersRepository;
+        $this->customerRepository  = $customerRepository;
+        $this->productRepository   = $productRepository;
     }
 
     public function createOrders(array $payload)
@@ -37,53 +37,72 @@ class OrdersService
                 throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Customer not found.");
             }
 
+            // ── Stock validation (before any writes) ─────────────────
+            foreach ($payload['items'] as $item) {
+                $product  = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+                $quantity = (int) $item['quantity'];
 
+                if ($product->stock_quantity <= 0) {
+                    throw ValidationException::withMessages([
+                        'items' => ["{$product->name} is out of stock."],
+                    ]);
+                }
+
+                if ($quantity > $product->stock_quantity) {
+                    throw ValidationException::withMessages([
+                        'items' => [
+                            "Not enough stock for {$product->name}. "
+                            . "Requested: {$quantity}, Available: {$product->stock_quantity}."
+                        ],
+                    ]);
+                }
+            }
+
+            // ── Create order ──────────────────────────────────────────
             $order = $this->ordersRepository->create([
-                'customer_id' => $customer->id,   
+                'customer_id'  => $customer->id,
                 'total_amount' => 0,
-                'uuid' => (string) \Illuminate\Support\Str::uuid()
+                'uuid'         => (string) \Illuminate\Support\Str::uuid(),
             ]);
 
             $totalAmount = 0;
 
             foreach ($payload['items'] as $item) {
-                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
-
+                $product   = Product::where('uuid', $item['product_uuid'])->firstOrFail();
                 $unitPrice = (float) $product->price;
-                $quantity = (int) $item['quantity'];
-                $subtotal = $unitPrice * $quantity;
+                $quantity  = (int) $item['quantity'];
+                $subtotal  = $unitPrice * $quantity;
 
-                // Store product_id (numeric foreign key)
                 $this->ordersRepository->addItem($order, [
                     'product_id' => $product->id,
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice
+                    'quantity'   => $quantity,
+                    'unit_price' => $unitPrice,
                 ]);
+
+                // ── Decrement stock ───────────────────────────────────
+                $product->decrement('stock_quantity', $quantity);
 
                 $totalAmount += $subtotal;
             }
 
-            // Update total amount
             $this->ordersRepository->updateTotal($order, $totalAmount);
 
             return new OrdersResource($order->load('items.product'));
         });
     }
 
-    
     public function getCustomerOrders(string $uuid)
     {
         $customer = $this->customerRepository->findByUuid($uuid);
 
         if (!$customer) {
-            return collect(); // or throw new ModelNotFoundException
+            return collect();
         }
 
         return Order::where('customer_id', $customer->id)
             ->with('items.product')
             ->get();
     }
-
 
     public function listOrders(int $perPage = 15)
     {

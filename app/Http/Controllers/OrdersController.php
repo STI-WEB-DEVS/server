@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Service\OrdersService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 class OrdersController extends Controller
 {
@@ -22,6 +22,13 @@ class OrdersController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'customer_uuid'          => ['required', 'string'],
+            'items'                  => ['required', 'array', 'min:1'],
+            'items.*.product_uuid'   => ['required', 'string'],
+            'items.*.quantity'       => ['required', 'integer', 'min:1'],
+        ]);
+
         return $this->ordersService->createOrders($request->all());
     }
 
@@ -40,10 +47,9 @@ class OrdersController extends Controller
         $this->ordersService->deleteOrders($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-    
+
     public function restore(string $uuid)
     {
         return $this->ordersService->restoreOrders($uuid);
     }
-
 }
