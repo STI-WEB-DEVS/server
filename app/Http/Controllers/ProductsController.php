@@ -2,47 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Service\ProductsService;
+use App\Http\Requests\ProductStoreRequest;
+use App\Service\ProductService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class ProductsController extends Controller
 {
-    private ProductsService $productsService;
+    private ProductService $productService;
 
-    public function __construct(ProductsService $productsService)
+    public function __construct(ProductService $productService)
     {
-        $this->productsService = $productsService;
+        $this->productService = $productService;
     }
 
     public function index(Request $request)
     {
-        return $this->productsService->listProducts($request->input('per_page', 15));
+        return $this->productService->listProducts($request->input('per_page', 15));
     }
 
-    public function store(Request $request)
+    public function store(ProductStoreRequest $request)
     {
-        return $this->productsService->createProducts($request->all());
+        return $this->productService->createProducts($request->validated());
     }
 
     public function show(string $uuid)
     {
-        return $this->productsService->getProducts($uuid);
+        return $this->productService->getProducts($uuid);
     }
 
-    public function update(Request $request, string $uuid)
+    public function update(ProductStoreRequest $request, string $uuid)
     {
-        return $this->productsService->updateProducts($uuid, $request->all());
+        return $this->productService->updateProducts($uuid, $request->validated());
     }
 
     public function destroy(string $uuid)
     {
-        $this->productsService->deleteProducts($uuid);
+        $this->productService->deleteProducts($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-    
-    public function restore(string $uuid)
+
+    public function reduceStock(Request $request, string $uuid)
     {
-        return $this->productsService->restoreProducts($uuid);
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $this->productService->reduceStock($uuid, $request->input('quantity'));
+
+        return response()->json(['message' => 'Stock updated successfully'], 200);
     }
 }

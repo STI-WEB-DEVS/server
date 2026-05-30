@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,7 @@ Route::apiResources([
 ]);
 
 Route::get('/customers/{uuid}/orders', [OrderController::class, 'getByCustomer']);
+Route::post('/products/{uuid}/reduce-stock', [ProductsController::class, 'reduceStock']);
 
 
 Route::middleware('auth:sanctum')->group(function () {

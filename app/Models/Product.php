@@ -10,8 +10,11 @@ class Product extends Model
     use HasUuids;
 
     protected $fillable = [
-        'name', 
-        'price'
+        'uuid',
+        'name',
+        'description',
+        'price',
+        'stocks',
     ];
 
     public function uniqueIds(): array
