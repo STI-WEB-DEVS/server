@@ -36,8 +36,8 @@ class OrderService
             // Gather all product UUIDs
             $productUuids = array_column($payload['items'], 'product_uuid');
 
-            // Query all products at once
-            $products = Product::whereIn('uuid', $productUuids)->get()->keyBy('uuid');
+            // Query all products at once and lock rows for update (prevents race conditions)
+            $products = Product::whereIn('uuid', $productUuids)->lockForUpdate()->get()->keyBy('uuid');
 
             $orderItems = [];
             $total = 0;
@@ -48,9 +48,17 @@ class OrderService
                     throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Product with UUID {$uuid} not found.");
                 }
 
-                $product = $products->get($uuid);
+                $product  = $products->get($uuid);
+                $quantity = (int) $item['quantity'];
+
+                // Stock validation
+                if ($product->stock < $quantity) {
+                    throw new \Exception(
+                        "Insufficient stock for \"{$product->name}\". Available: {$product->stock}, Requested: {$quantity}."
+                    );
+                }
+
                 $unitPrice = $product->price;
-                $quantity  = $item['quantity'];
 
                 $orderItems[] = [
                     'order_id'   => $order->id,
@@ -67,6 +75,12 @@ class OrderService
             // Batch insert all order items in a single query
             if (!empty($orderItems)) {
                 \App\Models\OrderItem::insert($orderItems);
+            }
+
+            // Decrement stock for each product
+            foreach ($payload['items'] as $item) {
+                Product::where('uuid', $item['product_uuid'])
+                    ->decrement('stock', (int) $item['quantity']);
             }
 
             $order->update(['total_amount' => $total]);

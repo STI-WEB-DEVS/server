@@ -40,7 +40,17 @@ class ProductService
 
     public function updateProduct(string $uuid, array $payload)
     {
-        $model = $this->productRepository->update($uuid, $payload);
+        // 'restock' adds to existing stock; 'stock' is read-only on updates
+        $restockQty = isset($payload['restock']) ? (int) $payload['restock'] : 0;
+        $data = array_diff_key($payload, ['stock' => null, 'restock' => null]);
+
+        $model = $this->productRepository->update($uuid, $data);
+
+        if ($restockQty > 0) {
+            $model->increment('stock', $restockQty);
+            $model->refresh();
+        }
+
         return new ProductResource($model);
     }
 
