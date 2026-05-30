@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResources([
          'customers' => CustomerController::class,
          'order' => OrderController::class,
-         'product' => ProductController::class
+         'products' => ProductController::class
     ]);
 
     Route::get('/customers/{customer_uuid}/orders', [OrderController::class, 'getCustomerOrders']);
