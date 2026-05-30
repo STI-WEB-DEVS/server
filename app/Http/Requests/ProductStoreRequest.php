@@ -14,8 +14,17 @@ class ProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => ['required', 'string', 'max:255'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'name'           => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'description'    => ['nullable', 'string', 'max:1000'],
+            'price'          => ['required', 'numeric', 'min:0'],
+            'stock_quantity' => ['required', 'integer', 'min:0'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.regex' => 'Product name may only contain letters and spaces.',
         ];
     }
 }

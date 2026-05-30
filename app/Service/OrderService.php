@@ -27,34 +27,45 @@ class OrderService
     {
         return DB::transaction(function () use ($payload) {
             $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
-
+    
             $order = $this->orderRepository->create([
                 'customer_id'  => $customer->id,
                 'total_amount' => 0,
             ]);
-
+    
             $total = 0;
             foreach ($payload['items'] as $item) {
-                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
-                $unitPrice = $product->price;
-                $quantity  = $item['quantity'];
-
+                // Lock the row to prevent race conditions
+                $product = Product::where('uuid', $item['product_uuid'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
+    
+                $quantity = $item['quantity'];
+    
+                if ($product->stock_quantity < $quantity) {
+                    throw new \Exception(
+                        "Insufficient stock for \"{$product->name}\". Available: {$product->stock_quantity}."
+                    );
+                }
+    
                 $order->items()->create([
                     'product_id' => $product->id,
                     'quantity'   => $quantity,
-                    'unit_price' => $unitPrice,
+                    'unit_price' => $product->price,
                 ]);
-
-                $total += $unitPrice * $quantity;
+    
+                // Deduct stock
+                $product->decrement('stock_quantity', $quantity);
+    
+                $total += $product->price * $quantity;
             }
-
+    
             $order->update(['total_amount' => $total]);
             $order->load(['customer', 'items.product']);
-
+    
             return new OrderResource($order);
         });
     }
-
     public function getOrder(string $uuid)
     {
         $model = $this->orderRepository->findByUuid($uuid);

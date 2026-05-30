@@ -26,28 +26,35 @@ class CreateUsersForCustomers extends Command
                         // Already linked to a user
                         $existingLinkedUser = User::where('customer_id', $customer->id)->first();
                         if ($existingLinkedUser) {
-                            $this->info("Already linked: {$customer->email}");
+                            if (!$existingLinkedUser->hasRole('customer')) {
+                                $existingLinkedUser->assignRole('customer');
+                                $this->info("Assigned customer role: {$customer->email}");
+                            } else {
+                                $this->info("Already linked: {$customer->email}");
+                            }
                             continue;
                         }
 
                         // Same email exists, link it
                         $user = User::where('email', $customer->email)->first();
                         if ($user) {
-                            $user->update([
-                                'customer_id' => $customer->id,
-                            ]);
+                            $user->update(['customer_id' => $customer->id]);
+                            if (!$user->hasRole('customer')) {
+                                $user->assignRole('customer');
+                            }
                             $this->info("Linked existing user: {$customer->email}");
                             continue;
                         }
 
                         // No user exists, create one
-                        User::create([
-                            'company_id' => null,
+                        $newUser = User::create([
+                            'company_id'  => null,
                             'customer_id' => $customer->id,
-                            'name' => $customer->name,
-                            'email' => $customer->email,
-                            'password' => 'password',
+                            'name'        => $customer->name,
+                            'email'       => $customer->email,
+                            'password'    => 'password',
                         ]);
+                        $newUser->assignRole('customer');
                         $this->info("Created user: {$customer->email}");
                     }
                 });
