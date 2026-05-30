@@ -40,4 +40,14 @@ class OrderController extends Controller
     {
         return $this->orderService->listOrdersByCustomer($customerUuid, 15);
     }
+
+    public function summary(Request $request)
+{
+    $from = $request->query('from');
+    $to   = $request->query('to');
+
+    return response()->json(
+        $this->orderService->getOrderSummary($from, $to)
+    );
+}
 }

@@ -25,21 +25,30 @@ class OrderService
     }
 
     public function createOrder(array $payload)
-    {   
-        $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+    {
+        return DB::transaction(function () use ($payload) {
+            $customer = Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
 
-        if ($customer) {
             $order = $this->orderRepository->create([
                 'customer_id'  => $customer->id,
                 'total_amount' => 0,
             ]);
 
-
             $total = 0;
+
             foreach ($payload['items'] as $item) {
-                $product = Product::where('uuid', $item['product_id'])->firstOrFail();
+                $product  = Product::where('uuid', $item['product_id'])->firstOrFail();
+                $quantity = $item['quantity'];
+
+                // ✅ Check stock before proceeding
+                if ($product->stock_quantity < $quantity) {
+                    throw new \Exception(
+                        "Insufficient stock for \"{$product->name}\". " .
+                        "Available: {$product->stock_quantity}, Requested: {$quantity}."
+                    );
+                }
+
                 $unitPrice = $product->price;
-                $quantity  = $item['quantity'];
 
                 $order->items()->create([
                     'product_id' => $product->id,
@@ -47,13 +56,16 @@ class OrderService
                     'unit_price' => $unitPrice,
                 ]);
 
+                // ✅ Deduct stock
+                $product->decrement('stock_quantity', $quantity);
+
                 $total += $unitPrice * $quantity;
             }
 
             $order->update(['total_amount' => $total]);
-            return new OrderResource($order);
-        }
-            
+
+            return new OrderResource($order->load(['customer', 'items.product']));
+        });
     }
 
     public function getOrder(string $uuid)
@@ -72,5 +84,10 @@ class OrderService
     {
         $this->orderRepository->delete($uuid);
         return true;
+    }
+
+    public function getOrderSummary(?string $from, ?string $to): array
+    {
+        return $this->orderRepository->getSummary($from, $to);
     }
 }

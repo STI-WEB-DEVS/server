@@ -39,10 +39,18 @@ class ProductService
     }
 
     public function updateProduct(string $uuid, array $payload)
-    {
-        $model = $this->productRepository->update($uuid, $payload);
-        return new ProductResource($model);
+{
+    // ✅ If restock is provided, add it to current stock instead of overwriting
+    if (isset($payload['restock']) && $payload['restock'] > 0) {
+        $product = $this->productRepository->findByUuid($uuid);
+        $payload['stock_quantity'] = $product->stock_quantity + $payload['restock'];
     }
+
+    unset($payload['restock']); // don't pass restock column to DB
+
+    $model = $this->productRepository->update($uuid, $payload);
+    return new ProductResource($model);
+}
 
     public function deleteProduct(string $uuid)
     {

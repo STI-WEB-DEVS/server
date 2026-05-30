@@ -14,6 +14,8 @@ Route::post('/login', [AuthController::class, 'login']);
 // PROTECTED
 Route::middleware('auth:sanctum')->group(function () {
 
+    Route::get('/orders/summary', [OrderController::class, 'summary']);
+
     Route::apiResources([
         'companies' => CompanyController::class,
         'languages' => LanguageController::class,

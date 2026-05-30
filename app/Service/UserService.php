@@ -17,31 +17,33 @@ class UserService
     }
 
     public function loginUser(object $payload)
-    {
-        if (empty($payload->email) || empty($payload->password)) {
-            return response()->json(['message' => 'Email and password are required'], 400);
-        }
-
-        $user = $this->userRepository->findByField('email', $payload->email);
-
-        if (! $user) {
-            return response()->json(['message' => 'User not found'], 401);
-        }
-
-        if (! Hash::check($payload->password, $user->password)) {
-            return response()->json(['message' => 'Invalid password'], 401);
-        }
-
-        // Optional: revoke old tokens (prevents token spam)
-        $user->tokens()->delete();
-
-        $token = $user->createToken($user->email)->plainTextToken;
-
-        return response()->json([
-            'user' => new UserResource($user),
-            'token' => $token
-        ], 200);
+{
+    if (empty($payload->email) || empty($payload->password)) {
+        return response()->json(['message' => 'Email and password are required'], 400);
     }
+
+    $user = $this->userRepository->findByField('email', $payload->email);
+
+    if (! $user) {
+        return response()->json(['message' => 'User not found'], 401);
+    }
+
+    if (! Hash::check($payload->password, $user->password)) {
+        return response()->json(['message' => 'Invalid password'], 401);
+    }
+
+    $user->tokens()->delete();
+
+    $token = $user->createToken($user->email)->plainTextToken;
+
+    // ✅ Eager load customer so $this->customer?->uuid works in UserResource
+    $user->load('customer');
+
+    return response()->json([
+        'user'  => new UserResource($user),
+        'token' => $token,
+    ], 200);
+}
 
     public function logoutUser(Request $request)
     {

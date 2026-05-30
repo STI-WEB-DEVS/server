@@ -14,8 +14,22 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => 'string|max:255',
-            'price' => 'numeric',
+            'name'        => [
+                'sometimes',
+                'string',
+                'max:255',
+                'regex:/[a-zA-Z]/',   // ✅ same rule on update
+            ],
+            'description' => 'sometimes|nullable|string',
+            'price' => 'required|numeric|min:0.01',  
+            'restock'     => 'sometimes|integer|min:0',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.regex' => 'Product name must contain at least one letter, not numbers only.',
         ];
     }
 }
