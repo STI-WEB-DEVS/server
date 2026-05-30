@@ -13,10 +13,28 @@ class ProductStoreRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'name'        => ['required', 'string', 'max:255'],
-            'price'       => ['required', 'numeric', 'min:0'],
+        $rules = [
+            'name'        => [
+                'required', 
+                'string', 
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    if (is_numeric(str_replace(['.', ','], '', trim($value)))) {
+                        $fail('The product name cannot be a number.');
+                    }
+                }
+            ],
+            'price'       => ['required', 'numeric', 'min:0.01'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'stock_quantity'    => ['required', 'integer'],
         ];
+
+        if ($this->isMethod('post')) {
+            $rules['stock_quantity'][] = 'min:1';
+        } else {
+            $rules['stock_quantity'][] = 'min:0';
+        }
+
+        return $rules;
     }
 }

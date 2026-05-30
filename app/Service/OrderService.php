@@ -39,6 +39,12 @@ class OrderService
                 $unitPrice = $product->price;
                 $quantity  = $item['quantity'];
 
+                if ($product->stock_quantity < $quantity) {
+                    throw new \Exception("Insufficient stock for product: {$product->name}");
+                }
+
+                $product->decrement('stock_quantity', $quantity);
+
                 $order->items()->create([
                     'product_id' => $product->id,
                     'quantity'   => $quantity,
