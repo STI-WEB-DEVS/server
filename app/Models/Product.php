@@ -9,11 +9,12 @@ class Product extends Model
 {
     use HasUuids;
 
-    protected $fillable = [
-        'name',
-        'price',
-        'stock_quantity', // ← new
-    ];
+  protected $fillable = [
+    'uuid',
+    'name',
+    'price',
+    'stock_quantity',  // ← must be here
+];
 
     protected $casts = [
         'stock_quantity' => 'integer', // ← new
