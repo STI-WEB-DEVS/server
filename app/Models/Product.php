@@ -12,8 +12,10 @@ class Product extends Model
     protected $fillable = [
         'name',
         'price',
+        'stock_quantity',
+        'description'
     ];
-
+    
     public function uniqueIds(): array
     {
         return ['uuid'];

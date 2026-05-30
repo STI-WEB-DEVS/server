@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Service\ProductsService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class ProductsController extends Controller
 {
@@ -22,7 +21,11 @@ class ProductsController extends Controller
 
     public function store(Request $request)
     {
-        return $this->productsService->createProducts($request->all());
+        try {
+            return $this->productsService->createProducts($request->all());
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     public function show(string $uuid)
@@ -32,7 +35,11 @@ class ProductsController extends Controller
 
     public function update(Request $request, string $uuid)
     {
-        return $this->productsService->updateProducts($uuid, $request->all());
+        try {
+            return $this->productsService->updateProducts($uuid, $request->all());
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     public function destroy(string $uuid)
@@ -40,9 +47,19 @@ class ProductsController extends Controller
         $this->productsService->deleteProducts($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
     }
-    
+
     public function restore(string $uuid)
     {
         return $this->productsService->restoreProducts($uuid);
+    }
+
+    public function restock(Request $request, string $uuid)
+    {
+        try {
+            $quantity = (int) $request->input('quantity', 0);
+            return $this->productsService->restockProduct($uuid, $quantity);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 }

@@ -13,7 +13,7 @@ class OrderService
     private OrderRepository $orderRepository;
     private OrderItemRepository $orderItemRepository;
 
-    public function __construct(OrderRepository $orderRepository, OrderItemRepository $orderItemRepository) 
+    public function __construct(OrderRepository $orderRepository, OrderItemRepository $orderItemRepository)
     {
         $this->orderRepository = $orderRepository;
         $this->orderItemRepository = $orderItemRepository;
@@ -29,45 +29,59 @@ class OrderService
     {
         $user = auth()->user();
 
-    if (!$user) {
-        return response()->json(['message' => 'Unauthenticated'], 401);
-    }
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
 
-    $customer = $user->customer;   // This uses the relationship you already have
+        $customer = $user->customer;
 
-    if (!$customer) {
-        return response()->json(['message' => 'No customer linked to this user account'], 422);
-    }
-        // $customer = \App\Models\Customer::where('uuid', $payload['customer_uuid'])->firstOrFail();
+        if (!$customer) {
+            return response()->json(['message' => 'No customer linked to this user account'], 422);
+        }
 
-    $totalAmount = 0;
+        // ── Stock validation pass (check everything before touching the DB) ──
+        foreach ($payload['items'] as $item) {
+            $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
 
-    $order = $this->orderRepository->create([
-        'customer_id' => $customer->id,
-        'total_amount' => 0
-    ]);
+            if ($product->stock_quantity <= 0) {
+                throw new \Exception("'{$product->name}' is out of stock.");
+            }
 
-    foreach ($payload['items'] as $item) {
+            if ($product->stock_quantity < $item['quantity']) {
+                throw new \Exception(
+                    "Not enough stock for '{$product->name}'. " .
+                    "Available: {$product->stock_quantity}, Requested: {$item['quantity']}."
+                );
+            }
+        }
 
-        $product = \App\Models\Product::where('uuid', $item['product_uuid'])->firstOrFail();
+        // ── Create order ──
+        $totalAmount = 0;
 
-        $lineTotal = $product->price * $item['quantity'];
-
-        $totalAmount += $lineTotal;
-
-        $this->orderItemRepository->create([
-            'order_id' => $order->id,
-            'product_id' => $product->id,
-            'quantity' => $item['quantity'],
-            'unit_price' => $product->price
+        $order = $this->orderRepository->create([
+            'customer_id'  => $customer->id,
+            'total_amount' => 0,
         ]);
-    }
 
-    $order->update([
-    'total_amount' => $totalAmount
-]);
+        foreach ($payload['items'] as $item) {
+            $product    = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+            $lineTotal  = $product->price * $item['quantity'];
+            $totalAmount += $lineTotal;
 
-return new \App\Http\Resources\OrderResource($order->fresh());
+            $this->orderItemRepository->create([
+                'order_id'   => $order->id,
+                'product_id' => $product->id,
+                'quantity'   => $item['quantity'],
+                'unit_price' => $product->price,
+            ]);
+
+            // ── Deduct stock ──
+            $product->decrement('stock_quantity', $item['quantity']);
+        }
+
+        $order->update(['total_amount' => $totalAmount]);
+
+        return new OrderResource($order->fresh());
     }
 
     public function getOrder(string $uuid)
@@ -103,13 +117,11 @@ return new \App\Http\Resources\OrderResource($order->fresh());
     public function getOrdersByCustomer(string $customerUuid)
     {
         $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
-
-        $orders = $this->orderRepository->getOrdersByCustomer($customer->id);
-
+        $orders   = $this->orderRepository->getOrdersByCustomer($customer->id);
         return OrderResource::collection($orders);
     }
 
-    public function getOrderSummary(?string $from, ?string $to):array
+    public function getOrderSummary(?string $from, ?string $to): array
     {
         return $this->orderRepository->getSummary($from, $to);
     }

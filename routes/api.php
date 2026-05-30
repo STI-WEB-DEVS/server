@@ -26,6 +26,8 @@ Route::post('/login', [AuthController::class, 'login']);
         'OrderItem' => OrderItemController::class,
     ]);
 
+    // wherever your products routes are, add:
+Route::post('/products/{uuid}/restock', [ProductsController::class, 'restock']);
 Route::get('/test', function (Request $request) {
     return response()->json([
         'name' => 'Nicole M. Berou',
