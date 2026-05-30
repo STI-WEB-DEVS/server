@@ -13,18 +13,20 @@ class ProductStoreRequest extends FormRequest
 
     public function rules(): array
     {
-        // For update (PUT/PATCH), make fields optional
-        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
-            return [
-                'name'  => ['sometimes', 'string', 'max:255'],
-                'price' => ['sometimes', 'numeric', 'min:0'],
-            ];
-        }
-
-        // For create (POST), require both fields
+    if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
         return [
-            'name'  => ['required', 'string', 'max:255'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'name'        => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'nullable', 'string'],
+            'price'       => ['sometimes', 'numeric', 'min:0'],
+            'stock'       => ['sometimes', 'integer', 'min:0'],
         ];
+    }
+
+    return [
+        'name'        => ['required', 'string', 'max:255'],
+        'description' => ['nullable', 'string'],
+        'price'       => ['required', 'numeric', 'min:0'],
+        'stock'       => ['required', 'integer', 'min:0'],
+    ];
     }
 }

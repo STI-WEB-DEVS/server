@@ -21,9 +21,16 @@ class OrderController extends Controller
     }
 
     public function store(OrderStoreRequest $request)
-    {
+{
+    try {
         return $this->orderService->createOrder($request->validated());
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'message' => $e->getMessage(),
+            'errors'  => $e->errors(),
+        ], 422);
     }
+}
 
     public function show(string $uuid)
     {
