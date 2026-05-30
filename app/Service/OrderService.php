@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Repository\OrderRepository;
 use App\Http\Resources\OrderResource;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
@@ -35,15 +36,25 @@ class OrderService
 
             $total = 0;
             foreach ($payload['items'] as $item) {
-                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+                $product = Product::where('uuid', $item['product_uuid'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
                 $unitPrice = $product->price;
                 $quantity  = $item['quantity'];
+
+                if ($product->quantity < $quantity) {
+                    throw ValidationException::withMessages([
+                        'items' => "Not enough stock for {$product->name}.",
+                    ]);
+                }
 
                 $order->items()->create([
                     'product_id' => $product->id,
                     'quantity'   => $quantity,
                     'unit_price' => $unitPrice,
                 ]);
+
+                $product->decrement('quantity', $quantity);
 
                 $total += $unitPrice * $quantity;
             }

@@ -14,6 +14,12 @@ class ProductRepository
 
     public function create(array $payload)
     {
+        if (isset($payload['restock_amount'])) {
+            $restock = intval($payload['restock_amount']);
+            if ($restock > 0) {
+                $payload['quantity'] = ($payload['quantity'] ?? 0) + $restock;
+            }
+        }
         return Product::create($payload);
     }
 
@@ -30,6 +36,12 @@ class ProductRepository
     public function update(string $uuid, array $payload)
     {
         $model = $this->findByUuid($uuid);
+        if (isset($payload['restock_amount'])) {
+            $restock = intval($payload['restock_amount']);
+            if ($restock > 0) {
+                $payload['quantity'] = ($model->quantity ?? 0) + $restock;
+            }
+        }
         $model->update($payload);
         return $model;
     }

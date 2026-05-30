@@ -14,8 +14,8 @@ class AuthController extends Controller
         $this->userService = $userService;
     }
 
-   public function login(Request $request)
-{
+    public function login(Request $request)
+    {
     $credentials = $request->validate([
         'email'    => 'required|email',
         'password' => 'required',
