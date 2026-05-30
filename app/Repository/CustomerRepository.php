@@ -43,9 +43,9 @@ class CustomerRepository
         $customer = $this->retrieveCustomer($id);
         $customer->delete();
         return response()->json([
+            'status' => true,
             'message' => "Customer has been deleted"
         ], 200);
-        return "Customer has been deleted";
     }
 
     public function getCustomerOrders(string $uuid)

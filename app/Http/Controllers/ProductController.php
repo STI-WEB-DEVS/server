@@ -38,9 +38,9 @@ class ProductController extends Controller
     public function destroy(string $uuid)
     {
         $this->productService->deleteProduct($uuid);
-        return response()->json(['message' => 'Deleted successfully'], 200);
+        return response()->json(['status' => true, 'message' => 'Deleted successfully'], 200);
     }
-    
+
     public function restore(string $uuid)
     {
         return $this->productService->restoreProduct($uuid);
