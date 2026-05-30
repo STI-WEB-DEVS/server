@@ -40,6 +40,11 @@ class ProductsService
 
     public function updateProducts(string $uuid, array $payload)
     {
+        if (isset($payload['add_quantity'])) {
+            $model = $this->productsRepository->findByUuid($uuid);
+            $payload['quantity'] = $model->quantity + (int)$payload['add_quantity'];
+            unset($payload['add_quantity']);
+        }
         $model = $this->productsRepository->update($uuid, $payload);
         return new ProductsResource($model);
     }

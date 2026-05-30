@@ -36,7 +36,7 @@ $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
     
         // Create order items
         foreach ($payload['items'] as $item) {
-   $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+            $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
     
             OrderItem::create([
                 'order_id'   => $order->id,
@@ -44,6 +44,9 @@ $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
                 'quantity'   => $item['quantity'],
                 'unit_price' => $product->price,
             ]);
+
+            // Decrement product stock
+            $product->decrement('quantity', $item['quantity']);
         }
     
         // Return order with items + product relationship
