@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -51,26 +53,38 @@ class OrderController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        $customer = isset($validated['customer_id'])
-            ? Customer::findOrFail($validated['customer_id'])
-            : Customer::where('uuid', $validated['customer_uuid'])->firstOrFail();
+        $order = DB::transaction(function () use ($validated) {
+            $customer = isset($validated['customer_id'])
+                ? Customer::findOrFail($validated['customer_id'])
+                : Customer::where('uuid', $validated['customer_uuid'])->firstOrFail();
 
-        $order = Order::create([
-            'customer_id' => $customer->id,
-            'total_amount' => $validated['total_amount'],
-        ]);
-
-        foreach ($validated['items'] as $item) {
-            $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
-
-            $order->items()->create([
-                'product_id' => $product->id,
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
+            $order = Order::create([
+                'customer_id' => $customer->id,
+                'total_amount' => $validated['total_amount'],
             ]);
-        }
 
-        $order->load(['items.product', 'customer']);
+            foreach ($validated['items'] as $item) {
+                $product = Product::where('uuid', $item['product_uuid'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($product->stock_quantity < $item['quantity']) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Insufficient stock available for {$product->name}."],
+                    ]);
+                }
+
+                $product->decrement('stock_quantity', $item['quantity']);
+
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                ]);
+            }
+
+            return $order->load(['items.product', 'customer']);
+        });
 
         return response()->json([
             'message' => 'Order created successfully',
