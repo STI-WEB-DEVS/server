@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductStoreRequest;
-use App\Http\Requests\UpdateProductRequest;    
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Requests\RestockProductRequest;
 use App\Service\ProductService;
 use Illuminate\Http\Request;
 
@@ -40,5 +41,14 @@ class ProductController extends Controller
     {
         $this->productService->deleteProduct($uuid);
         return response()->json(['message' => 'Deleted successfully'], 200);
+    }
+
+    public function restock(RestockProductRequest $request, string $uuid)
+    {
+        $product = $this->productService->restockProduct($uuid, $request->validated()['quantity']);
+        return response()->json([
+            'message' => 'Product restocked successfully',
+            'data' => $product
+        ], 200);
     }
 }

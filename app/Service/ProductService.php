@@ -40,6 +40,10 @@ class ProductService
 
     public function updateProduct(string $uuid, array $payload)
     {
+        // Remove quantity from payload to prevent direct updates
+        // Use restockProduct() method instead
+        unset($payload['quantity']);
+        
         $model = $this->productRepository->update($uuid, $payload);
         return new ProductResource($model);
     }
@@ -53,6 +57,27 @@ class ProductService
     public function restoreProduct(string $uuid)
     {
         $model = $this->productRepository->restore($uuid);
+        return new ProductResource($model);
+    }
+
+    public function restockProduct(string $uuid, int $quantity)
+    {
+        $model = $this->productRepository->findByUuid($uuid);
+        $newQuantity = $model->quantity + $quantity;
+        $model->update(['quantity' => $newQuantity]);
+        return new ProductResource($model);
+    }
+
+    public function reduceStock(string $uuid, int $quantity)
+    {
+        $model = $this->productRepository->findByUuid($uuid);
+        
+        if ($model->quantity < $quantity) {
+            throw new \Exception("Insufficient stock. Available: {$model->quantity}, Requested: {$quantity}");
+        }
+        
+        $newQuantity = $model->quantity - $quantity;
+        $model->update(['quantity' => $newQuantity]);
         return new ProductResource($model);
     }
 }

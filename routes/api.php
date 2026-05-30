@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
         'orders' => OrderController::class,
     ]);
 
+    Route::post('/products/{uuid}/restock', [ProductController::class, 'restock']);
     Route::get('/orders/{customeruuid}/customers', [OrderController::class, 'listByCustomer']);
     Route::get('/order/summary', [OrderSummaryController::class, 'index']);
 });
