@@ -35,9 +35,18 @@ class OrderService
 
             $total = 0;
             foreach ($payload['items'] as $item) {
-                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+                $product = Product::where('uuid', $item['product_uuid'])->lockForUpdate()->firstOrFail();
                 $unitPrice = $product->price;
                 $quantity  = $item['quantity'];
+
+                if ($product->stock < $quantity) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'items' => ["The product '{$product->name}' does not have enough stock available (Available: {$product->stock})."]
+                    ]);
+                }
+
+                $product->stock -= $quantity;
+                $product->save();
 
                 $order->items()->create([
                     'product_id' => $product->id,
@@ -69,7 +78,16 @@ class OrderService
 
     public function deleteOrder(string $uuid)
     {
-        $this->orderRepository->delete($uuid);
-        return true;
+        return DB::transaction(function () use ($uuid) {
+            $order = $this->orderRepository->findByUuid($uuid);
+            foreach ($order->items as $item) {
+                $product = $item->product;
+                if ($product) {
+                    $product->increment('stock', $item->quantity);
+                }
+            }
+            $order->delete();
+            return true;
+        });
     }
 }

@@ -30,6 +30,9 @@ class ProductRepository
     public function update(string $uuid, array $payload)
     {
         $model = $this->findByUuid($uuid);
+        if (isset($payload['stock'])) {
+            $payload['stock'] = $model->stock + $payload['stock'];
+        }
         $model->update($payload);
         return $model;
     }
