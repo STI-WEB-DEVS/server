@@ -22,7 +22,6 @@ class ProductService
 
     public function createProduct(array $payload)
     {
-        
         $model = $this->productRepository->create($payload);
         return new ProductResource($model);
     }
