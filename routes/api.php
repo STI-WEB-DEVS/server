@@ -23,6 +23,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Whiteboard Requirement: Custom explicit route for the Date Range Order Analytics Summary
     Route::get('/admin/order-summary', [OrderController::class, 'summary']);
+    
+    // Product restock endpoint
+    Route::post('/products/{id}/restock', [ProductController::class, 'restock']);
 
     Route::apiResources([
         'companies' => CompanyController::class,

@@ -14,7 +14,7 @@ use Carbon\Carbon;
 class OrderController extends Controller
 {
     /**
-     * Whiteboard Requirement 1: Create Order Submission
+     * Whiteboard Requirement 1: Create Order Submission (with Stock Limitations)
      */
     public function store(Request $request)
     {
@@ -26,7 +26,7 @@ class OrderController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
         ]);
 
-        // Wrap in a transaction so if one item fails, it database rollbacks cleanly
+        // Wrap in a transaction so if one item fails stock checks, it database rollbacks cleanly
         return DB::transaction(function () use ($request) {
             
             // 2. Find internal customer ID using the global UUID sent by Nuxt
@@ -40,9 +40,19 @@ class OrderController extends Controller
 
             $calculatedTotal = 0;
 
-            // 4. Loop through array data to attach items
+            // 4. Loop through array data to check stock and attach items
             foreach ($request->items as $item) {
-                $product = Product::where('uuid', $item['product_uuid'])->firstOrFail();
+                // Fetch product with a row lock to prevent race conditions during checkout
+                $product = Product::where('uuid', $item['product_uuid'])->lockForUpdate()->firstOrFail();
+
+                // 🛑 Customer POV: Enforce inventory limitations
+                if ($product->stock < $item['quantity']) {
+                    throw new \Exception("Sorry, '{$product->name}' only has {$product->stock} units left in stock.");
+                }
+
+                // 📉 Deduct inventory pool availability
+                $product->decrement('stock', $item['quantity']);
+
                 $subtotal = $product->price * $item['quantity'];
                 $calculatedTotal += $subtotal;
 
@@ -59,12 +69,13 @@ class OrderController extends Controller
 
             // 6. Return response payload to satisfy your whiteboard requirement!
             return response()->json([
+                'success' => true,
                 'message' => 'Order created successfully!',
                 'order_id' => $order->id,
                 'total_amount' => $calculatedTotal,
                 'customer_uuid' => $request->customer_uuid,
             ], 201);
-    });
+        });
     }
 
     /**
@@ -81,42 +92,46 @@ class OrderController extends Controller
             ? Carbon::parse($request->query('end_date'))->endOfDay() 
             : Carbon::now()->endOfDay();
 
-      $totalRevenue = DB::table('order_items')
-    ->select(DB::raw('SUM(quantity * unit_price) as total'))
-    ->value('total');
+        // 2. FIXED: Filter total revenue by date boundaries by joining parent orders table
+        $totalRevenue = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
+            ->select(DB::raw('SUM(order_items.quantity * order_items.unit_price) as total'))
+            ->value('total');
 
         // 3. Display number of customers who ordered within date range (Distinct count)
         $uniqueCustomersCount = Order::whereBetween('created_at', [$startDate, $endDate])
             ->distinct('customer_id')
             ->count('customer_id');
 
-        // 4. FIXED: Filter top products using parent orders table timestamp boundary markers
+        // 4. Filter top products using parent orders table timestamp boundary markers
         $topProducts = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id') // Joined parent orders table
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->select(
                 'products.uuid',
                 'products.name',
                 DB::raw('SUM(order_items.quantity) as total_quantity_sold'),
                 DB::raw('SUM(order_items.quantity * order_items.unit_price) as total_earned')
             )
-            ->whereBetween('orders.created_at', [$startDate, $endDate]) // Filter based on order date context
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->groupBy('products.id', 'products.uuid', 'products.name')
             ->orderBy('total_quantity_sold', 'desc')
             ->limit(5)
             ->get();
 
-        // 5. Build dynamic tracking response object payload
+        // 5. Build dynamic tracking response object payload matching admin dashboard format
         return response()->json([
+            'success' => true,
             'date_range' => [
                 'start' => $startDate->toDateTimeString(),
                 'end' => $endDate->toDateTimeString()
             ],
             'metrics' => [
-                'total_revenue' => (float) $totalRevenue,
-                'unique_customers' => (int) $uniqueCustomersCount
-            ],
-            'top_products' => $topProducts
+                'total_revenue' => (float) ($totalRevenue ?? 0),
+                'number_of_customers' => (int) $uniqueCustomersCount,
+                'top_products' => $topProducts
+            ]
         ], 200);
     }
 }
