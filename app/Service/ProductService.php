@@ -9,7 +9,7 @@ class ProductService
 {
     private ProductRepository $productRepository;
 
-    public function __construct(ProductRepository $productRepository)
+    public function __construct(ProductRepository $productRepository) 
     {
         $this->productRepository = $productRepository;
     }
@@ -40,7 +40,17 @@ class ProductService
 
     public function updateProduct(string $uuid, array $payload)
     {
-        $model = $this->productRepository->update($uuid, $payload);
+        // 'restock' adds to existing stock; 'stock' is read-only on updates
+        $restockQty = isset($payload['restock']) ? (int) $payload['restock'] : 0;
+        $data = array_diff_key($payload, ['stock' => null, 'restock' => null]);
+
+        $model = $this->productRepository->update($uuid, $data);
+
+        if ($restockQty > 0) {
+            $model->increment('stock', $restockQty);
+            $model->refresh();
+        }
+
         return new ProductResource($model);
     }
 
@@ -53,24 +63,6 @@ class ProductService
     public function restoreProduct(string $uuid)
     {
         $model = $this->productRepository->restore($uuid);
-        return new ProductResource($model);
-    }
-
-    // ← new
-    public function adjustStock(string $uuid, int $adjustment)
-    {
-        $model = $this->productRepository->findByUuid($uuid);
-
-        $newStock = $model->stock_quantity + $adjustment;
-
-        if ($newStock < 0) {
-            abort(422, 'Insufficient stock.');
-        }
-
-        $model = $this->productRepository->update($uuid, [
-            'stock_quantity' => $newStock,
-        ]);
-
         return new ProductResource($model);
     }
 }

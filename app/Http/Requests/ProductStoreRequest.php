@@ -13,20 +13,21 @@ class ProductStoreRequest extends FormRequest
 
     public function rules(): array
     {
-        $stockRule = $this->isMethod('POST') ? 'required' : 'sometimes';
-
         return [
-            'name'           => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\-]+$/'],
-            'description'    => ['nullable', 'string', 'max:1000'],
-            'price'          => ['required', 'numeric', 'min:0'],
-            'stock_quantity' => [$stockRule, 'integer', 'min:0'],
+            'name'        => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'price'       => ['required', 'numeric', 'min:0'],
+            'stock'       => [$this->isMethod('POST') ? 'required' : 'nullable', 'integer', 'min:0'],
+            'restock'     => ['nullable', 'integer', 'min:0'],
+            'description' => ['nullable', 'string', 'max:2000'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.regex' => 'Product name must only contain letters and spaces. Numbers and special characters are not allowed.',
+            'name.regex'     => 'The product name must contain only letters and spaces.',
+            'stock.required' => 'Stock quantity is required when creating a product.',
+            'restock.min'    => 'Restock amount cannot be negative.',
         ];
     }
 }
