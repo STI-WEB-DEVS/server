@@ -13,26 +13,9 @@ class OrderRepository
         return Order::latest()->paginate($perPage);
     }
 
-    public function paginateByCustomer(int $customerId, int $perPage = 15)
-    {
-        return Order::with('items')->where('customer_id', $customerId)->latest()->paginate($perPage);
-    }
-
     public function create(array $payload)
     {
         return Order::create($payload);
-    }
-
-    public function createWithItems(array $orderData, array $itemData)
-    {
-        return DB::transaction(function () use ($orderData, $itemData){
-            
-            $order = Order::create($orderData);
-
-            $order->items()->createMany($itemData);
-
-            return $order->load('items');
-        });
     }
 
     public function findByUuid(string $uuid)

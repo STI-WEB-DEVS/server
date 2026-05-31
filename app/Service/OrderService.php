@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use Illuminate\Support\Facades\DB;
 use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use App\Repository\CustomerRepository;
@@ -13,7 +14,7 @@ class OrderService
     private ProductRepository $productRepository;
     private CustomerRepository $customerRepository;
 
-    public function __construct(OrderRepository $orderRepository, ProductRepository $productRepository, CustomerRepository $customerRepository) 
+    public function __construct(OrderRepository $orderRepository, ProductRepository $productRepository, CustomerRepository $customerRepository)
     {
         $this->orderRepository = $orderRepository;
         $this->productRepository = $productRepository;
@@ -26,54 +27,61 @@ class OrderService
         return OrderResource::collection($collection);
     }
 
-    public function listOrdersByCustomer(string $customerUuid, int $perPage = 15)
-    {
-        $customer = $this->customerRepository->findByUuid($customerUuid);
-
-       
-
-        $collection = $this->orderRepository->paginateByCustomer($customer->id, $perPage);
-
-        return OrderResource::collection($collection);
-    }
 
     public function createOrder(array $payload)
     {
-        $customer_uuid = $this->customerRepository->findByUuid($payload['customer_uuid']);
-        $items = $payload['items'];
+        return DB::transaction(function () use ($payload) {
+            $orders = null;
+            $total_amount = 0;
+            $customer_uuid = $payload['customer_uuid'];
 
-        $resolvedItems = [];
-        $total = 0;
+            // CUSTOMER ID
+            $customer = $this->customerRepository->retrieveCustomer($customer_uuid);
 
-        foreach($items as $item){
-            $product = $this->productRepository->findByUuid($item['product_uuid']);
+            foreach ($payload['orders'] as $order) {
+                //PAYLOADS
+                $quantity = $order['quantity'];
+                $product_uuid = $order['product_uuid'];
 
-            
-            
-            $subtotal = $product->price * $item['quantity'];
-            $total += $subtotal;
+                //CREATE PRODUCT
+                $product = $this->productRepository->findByUuid($product_uuid);
 
-            $resolvedItems[] = [
-                'product_id' => $product->id,
-                'quantity' => $item['quantity'],
-                'unit_price' => $product->price,
-            ];
-        }
+                $price = $product->price;
+                $product_id = $product->id;
+                $total = $price * $quantity;
 
-        $orderData = [
-            'customer_id' => $customer_uuid->id,
-            'total_amount' => $total,
-        ];
+                $orderData = [
+                    'customer_id' =>  $customer->id,
+                ];
 
-        $order = $this->orderRepository->createWithItems($orderData, $resolvedItems);
 
-        return new OrderResource($order);
+                if (!$orders) {
+                    $total_amount = $total;
+                    $orders = $this->orderRepository->create($orderData);
+                } else {
+                    $total_amount = $total + $total_amount;
+                }
+
+                // ORDER ITEM
+                $orders->items()->create([
+                    'product_id' => $product_id,
+                    'quantity' => $quantity,
+                    'unit_price' => $price,
+                ]);
+            };
+
+            $orders->total_amount = $total_amount;
+            $orders->save();
+
+            return new OrderResource($orders);
+        });
     }
+
+
 
     public function getOrder(string $uuid)
     {
-        $model = $this->orderRepository->findByUuid($uuid);
-        return new OrderResource($model);
+        return $this->orderRepository->findByUuid($uuid);
     }
 
     public function getOrderByField(string $field, $value)

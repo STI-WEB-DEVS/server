@@ -2,62 +2,79 @@
 
 namespace App\Service;
 
-use App\Http\Resources\CustomerResource;
+use App\Models\Customer;
 use App\Repository\CustomerRepository;
-use App\Repository\UserRepository;
 
-
-
-class CustomerService  
+class CustomerService
 {
-    private CustomerRepository $customerRepository;
+    private customerRepository $customerRepository;
 
     public function __construct(CustomerRepository $customerRepository)
     {
         $this->customerRepository = $customerRepository;
     }
 
-    public function listCustomer(int $perPage = 15)
+    public function createCustomer($payload)
     {
-        $collection = $this->customerRepository->paginate($perPage);
-
-        return CustomerResource::collection($collection);
+        return $this->customerRepository->createCustomer($payload);
     }
 
-    public function createCustomers(array $payload)
+    public function retrieveCustomer($payload)
     {
-        $model = $this->customerRepository->create($payload);
-
-        return new CustomerResource($model);
+        return $this->customerRepository->retrieveCustomer($payload);
     }
 
-    public function getCustomer(string $uuid)
+    public function updateCustomer($payload, $id)
     {
-        $model = $this->customerRepository->findByUuid($uuid);
-
-        return new CustomerResource($model);
+        return $this->customerRepository->updateCustomer($payload, $id);
+    }
+    public function deleteCustomer($payload)
+    {
+        return $this->customerRepository->deleteCustomer($payload);
     }
 
-    public function getCustomerByField(string $field, $value)
+    public function getCustomers()
     {
-        $model = $this->customerRepository->findByField($field, $value);
-
-        return new CustomerResource($model);
+        return $this->customerRepository->getAllCustomers();
     }
 
-    public function updateCustomer(string $uuid, array $payload)
+    public function getCustomerOrders(string $customer_uuid)
     {
-        $model = $this->customerRepository->update($uuid, $payload);
 
-        return new CustomerResource($model);
+        $customer = $this->customerRepository->getCustomerOrders($customer_uuid);
+
+        if (!$customer) {
+            return response()->json([
+                'message' => 'Customer Not Found.'
+            ], 404);
+        };
+        $orders = $customer->orders;
+
+
+        return response()->json([
+            'customer' => [
+                'uuid' => $customer->uuid,
+                'name' => $customer->name,
+                'email' => $customer->email,
+            ],
+            'orders' => $orders->map(function ($order) {
+                return [
+                    'uuid' => $order->uuid,
+                    'total_amount' => $order->total_amount,
+                    'created_at' => $order->created_at,
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'product' => [
+                                'uuid' => $item->product->uuid,
+                                'name' => $item->product->name,
+                            ],
+                            'quantity' => $item->quantity,
+                            'unit_price' => $item->unit_price,
+                            'subtotal' => $item->quantity * $item->unit_price,
+                        ];
+                    }),
+                ];
+            }),
+        ]);
     }
-
-    public function deleteCustomer(string $uuid)
-    {
-        $this->customerRepository->delete($uuid);
-
-        return true;
-    }
-
-     
 }

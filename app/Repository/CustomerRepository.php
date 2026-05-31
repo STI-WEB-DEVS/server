@@ -3,18 +3,18 @@
 namespace App\Repository;
 
 use App\Models\Customer;
- 
 
 class CustomerRepository
 {
-    public function paginate(int $perPage = 15)
-    {
-        return Customer::latest()->paginate($perPage);
-    }
-
-    public function create(array $payload)
+    public function createCustomer($payload)
     {
         return Customer::create($payload);
+    }
+
+
+    public function getAllCustomers()
+    {
+        return Customer::latest()->paginate(5);
     }
 
     public function findByUuid(string $uuid)
@@ -22,31 +22,36 @@ class CustomerRepository
         return Customer::where('uuid', $uuid)->firstOrFail();
     }
 
-    public function findByField(string $field, $value)
+
+
+    public function retrieveCustomer($payload)
     {
-        return Customer::where($field, $value)->firstOrFail();
+
+        return Customer::where('uuid', $payload)->first();
     }
 
-    public function update(string $uuid, array $payload)
+    public function updateCustomer($payload, $id)
     {
-        $model = $this->findByUuid($uuid);
-        $model->update($payload);
 
-        return $model;
+        $customer = $this->retrieveCustomer($id);
+        $customer->update($payload);
+        $customer->save();
+        return $customer;
+    }
+    public function deleteCustomer($id)
+    {
+        $customer = $this->retrieveCustomer($id);
+        $customer->delete();
+        return response()->json([
+            'status' => true,
+            'message' => "Customer has been deleted"
+        ], 200);
     }
 
-    public function delete(string $uuid)
+    public function getCustomerOrders(string $uuid)
     {
-        $model = $this->findByUuid($uuid);
-
-        return $model->delete();
-    }
-
-    public function restore(string $uuid)
-    {
-        $model = Customer::withTrashed()->where('uuid', $uuid)->firstOrFail();
-        $model->restore();
-
-        return $model;
+        return   Customer::where('uuid', $uuid)
+            ->with('orders.items.product')
+            ->first();
     }
 }

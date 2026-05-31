@@ -1,50 +1,71 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Service\CustomerService;
-use GrahamCampbell\ResultType\Success;
 
+use App\Service\CustomerService;
+use App\Http\Requests\CustomerStoreRequest;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
 
-    private CustomerService $customerService;
-    
-        public function __construct(CustomerService $customerService)
-        {
-            $this->customerService = $customerService;
-        }
-        
-    public function index(Request $request)
-        {
-            return $this->customerService->listCustomer($request->input('per_page', 15));
-        }
-     
-    public function store(Request $request)
+    public CustomerService $customerService;
+
+    public function __construct(CustomerService $customerService)
     {
-        return $this->customerService->createCustomers($request->all());
+        $this->customerService = $customerService;
     }
 
-   
-    public function show(string $uuid)
+    public function customerOrders(string $uuid)
     {
-        return $this->customerService->getCustomer($uuid);
+        return $this->customerService->getCustomerOrders($uuid);
     }
 
-    
-    public function update(Request $request, string $uuid)
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-        return $this->customerService->updateCustomer($uuid, $request->all());
+        //
+
+        return $this->customerService->getCustomers();
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(CustomerStoreRequest $request)
+    {
+        //
+        return $this->customerService->createCustomer($request->all());
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+        return $this->customerService->retrieveCustomer($id);
+    }
+
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+        return $this->customerService->updateCustomer($request->all(), $id);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $uuid)
+    public function destroy(string $id)
     {
-        $this->customerService->deleteCustomer($uuid);
+        //
 
-        return response()->json(['message' => 'Deleted successfully'], 200);
+        return $this->customerService->deleteCustomer($id);
     }
 }
