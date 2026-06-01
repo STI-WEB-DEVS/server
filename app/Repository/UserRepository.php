@@ -10,4 +10,8 @@ class UserRepository
     {
         return User::where($field, $value)->first();
     }
+    public function create(array $attributes)
+    {
+        return \App\Models\User::create($attributes);
+    }
 }

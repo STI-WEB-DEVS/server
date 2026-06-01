@@ -21,7 +21,14 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        return $this->customerService->createCustomer($request->all());
+        try {
+            return $this->customerService->createCustomer($request->all());
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error creating customer',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show(string $id)

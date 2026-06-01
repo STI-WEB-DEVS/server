@@ -19,6 +19,14 @@ class AuthController extends Controller
         return $this->userService->loginUser($request);
     }
 
+    /**
+     * Handle registration for a new customer account
+     */
+    public function register(Request $request)
+    {
+        return $this->userService->registerCustomer($request);
+    }
+
     public function logout(Request $request)
     {
         return $this->userService->logoutUser($request->user());

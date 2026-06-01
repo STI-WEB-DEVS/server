@@ -24,10 +24,56 @@ class CustomerService
 
     public function createCustomer(array $payload)
     {
-        $model = $this->customerRepository->create($payload);
+        try {
+            // Ensure roles exist
+            \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'customer']);
+            \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
 
-        // Fixed: Wrap the model in a Resource, not the Repository
-        return new CustomerResource($model);
+            // Check if email already exists
+            $existingUser = \App\Models\User::where('email', $payload['email'])->first();
+            if ($existingUser) {
+                throw new \Exception('A user with this email already exists');
+            }
+
+            $existingCustomer = \App\Models\Customer::where('email', $payload['email'])->first();
+            if ($existingCustomer) {
+                throw new \Exception('A customer with this email already exists');
+            }
+
+            $sharedUuid = (string) \Illuminate\Support\Str::uuid();
+
+            // Enforce static fallback password string as explicitly requested
+            $plainPassword = $payload['password'] ?? 'password';
+            $hashedPassword = \Illuminate\Support\Facades\Hash::make($plainPassword);
+
+            // Create customer record first
+            $customerData = [
+                'uuid' => $sharedUuid,
+                'name' => $payload['name'],
+                'email' => $payload['email'],
+            ];
+            $customer = $this->customerRepository->create($customerData);
+
+            // Create user credentials lookup table
+            $user = \App\Models\User::create([
+                'uuid'        => $sharedUuid,
+                'name'        => $payload['name'],
+                'email'       => $payload['email'],
+                'password'    => $hashedPassword,
+                'customer_id' => $customer->id, // Link user to customer
+            ]);
+
+            // Assign customer role using Spatie
+            $user->assignRole('customer');
+
+            // Clear permission cache
+            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+            return new \App\Http\Resources\CustomerResource($customer);
+        } catch (\Exception $e) {
+            \Log::error('Error creating customer: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function getCustomer(string $uuid)

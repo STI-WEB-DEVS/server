@@ -16,18 +16,18 @@ class OrderStoreRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules()
-{
-    return [
-        'customer_uuid' => 'required|uuid|exists:customers,uuid',
-        'items'         => 'required|array|min:1',
-        'items.*.product_uuid' => 'required|uuid|exists:products,uuid',
-        'items.*.quantity'     => 'required|integer|min:1',
-    ];
-}
+    public function rules(): array
+    {
+        return [
+            'customer_uuid'        => 'required|uuid|exists:customers,uuid',
+            'total_price'          => 'required|numeric|min:0', // Validates overall order total sum
+            'items'                => 'required|array|min:1',
+            'items.*.product_uuid' => 'required|uuid|exists:products,uuid',
+            'items.*.quantity'     => 'required|integer|min:1',
+            'items.*.price'        => 'required|numeric|min:0', // Validates the unit price coming from Nuxt
+        ];
+    }
 
     /**
      * Prepare the data for validation.
@@ -41,4 +41,3 @@ class OrderStoreRequest extends FormRequest
         }
     }
 }
-
