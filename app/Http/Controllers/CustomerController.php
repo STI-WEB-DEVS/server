@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Service\CustomerService;
-use App\Http\Requests\CustomerStoreRequest ;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CustomerController extends Controller
 {
@@ -20,7 +20,7 @@ class CustomerController extends Controller
         return $this->customerService->listCustomer($request->input('per_page', 15));
     }
 
-    public function store(CustomerStoreRequest $request)
+    public function store(Request $request)
     {
         return $this->customerService->createCustomer($request->all());
     }
@@ -30,7 +30,7 @@ class CustomerController extends Controller
         return $this->customerService->getCustomer($uuid);
     }
 
-    public function update(CustomerStoreRequest $request, string $uuid)
+    public function update(Request $request, string $uuid)
     {
         return $this->customerService->updateCustomer($uuid, $request->all());
     }
@@ -38,7 +38,11 @@ class CustomerController extends Controller
     public function destroy(string $uuid)
     {
         $this->customerService->deleteCustomer($uuid);
-
         return response()->json(['message' => 'Deleted successfully'], 200);
+    }
+    
+    public function restore(string $uuid)
+    {
+        return $this->customerService->restoreCustomer($uuid);
     }
 }
