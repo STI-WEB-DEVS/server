@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ProductController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -21,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ]);
 
     Route::apiResources([
-        'customers' => CustomerController::class
+        'customers' => CustomerController::class,
+        'products' => ProductController::class
     ]);
 });
