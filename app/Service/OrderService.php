@@ -9,6 +9,7 @@ use App\Repository\OrderRepository;
 use App\Repository\CustomerRepository;
 use App\Repository\ProductRepository;
 use App\Http\Resources\OrderResource;
+use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
@@ -48,6 +49,19 @@ class OrderService
                 $productUuid = $item['product_uuid'];
                 $product = $this->productRepository->findByUuid($productUuid);
                 $quantity = $item['quantity'];
+
+                if ($quantity < 1) {
+                    throw ValidationException::withMessages([
+                        'items' => 'Quantity must be at least 1.',
+                    ]);
+                }
+
+                if ($quantity > $product->stock) {
+                    throw ValidationException::withMessages([
+                        'items' => "Only {$product->stock} stock available for {$product->name}.",
+                    ]);
+                }
+
                 $unitPrice = $product->price;
 
                 $subtotal = $unitPrice * $quantity;
@@ -58,6 +72,8 @@ class OrderService
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
                 ]);
+
+                $product->decrement('stock', $quantity);
             }
 
             $order->update([
@@ -104,6 +120,19 @@ class OrderService
                 foreach ($payload['items'] as $item) {
                     $product = $this->productRepository->findByUuid($item['product_uuid']);
                     $quantity = $item['quantity'];
+
+                    if ($quantity < 1) {
+                        throw ValidationException::withMessages([
+                            'items' => 'Quantity must be at least 1.',
+                        ]);
+                    }
+
+                    if ($quantity > $product->stock) {
+                        throw ValidationException::withMessages([
+                            'items' => "Only {$product->stock} stock available for {$product->name}.",
+                        ]);
+                    }
+
                     $unitPrice = $product->price;
                     $total += $unitPrice * $quantity;
 
@@ -112,6 +141,8 @@ class OrderService
                         'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                     ]);
+
+                    $product->decrement('stock', $quantity);
                 }
 
                 $order->update(['total_amount' => $total]);

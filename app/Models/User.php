@@ -20,11 +20,10 @@ class User extends Authenticatable
 
     protected $fillable = [
         'company_id',
+        'customer_id',
         'name',
         'email',
         'password',
-        'uuid',
-        'customer_id',
     ];
 
     protected $hidden = [
