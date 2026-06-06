@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Models\Customer;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class CustomersRepository
+class CustomerRepository
 {
     public function paginate(int $perPage = 15)
     {
