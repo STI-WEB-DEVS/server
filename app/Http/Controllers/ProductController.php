@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Service\ProductService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
@@ -22,7 +21,12 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        return $this->productService->createProduct($request->all());
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        return $this->productService->createProduct($validated);
     }
 
     public function show(string $uuid)
@@ -32,7 +36,12 @@ class ProductController extends Controller
 
     public function update(Request $request, string $uuid)
     {
-        return $this->productService->updateProduct($uuid, $request->all());
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'price' => 'sometimes|required|numeric|min:0',
+        ]);
+
+        return $this->productService->updateProduct($uuid, $validated);
     }
 
     public function destroy(string $uuid)

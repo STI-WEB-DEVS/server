@@ -17,6 +17,7 @@ class OrderRepository
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         return $this->model->newQuery()
+            ->with(['customer', 'items.product'])
             ->latest()
             ->paginate($perPage);
     }
@@ -29,6 +30,7 @@ class OrderRepository
     public function findByUuid(string $uuid): ?Order
     {
         return $this->model->newQuery()
+            ->with(['customer', 'items.product'])
             ->where('uuid', $uuid)
             ->firstOrFail();
     }

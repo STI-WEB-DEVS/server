@@ -34,7 +34,7 @@ class UserService
         $token = $user->createToken($user->email)->plainTextToken;
 
         return response()->json([
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load('customer')),
             'token' => $token,
         ], 200);
     }

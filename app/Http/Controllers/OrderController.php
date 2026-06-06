@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Service\OrderService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class OrderController extends Controller
 {
@@ -15,23 +14,26 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
- // app/Http/Controllers/OrderController.php
+    public function indexByCustomer($customerUuid)
+    {
+        return $this->orderService->getOrdersByCustomer($customerUuid);
+    }
 
-public function indexByCustomer($customerUuid)
-{
-    // Calling the method we just added to your OrderService
-    return $this->orderService->getOrdersByCustomer($customerUuid);
-}
+    public function index(Request $request)
+    {
+        return $this->orderService->listOrder($request->input('per_page', 15));
+    }
     
-    public function store(Request $request) 
-    { 
-    $validated = $request->validate([
-    'customer_uuid' => 'required|uuid',
-    'items' => 'required|array|min:1', 
-    'items.*.product_uuid' => 'required|uuid',
-    'items.*.quantity' => 
-    'required|integer|min:1', ]); 
-    return $this->orderService->createOrder($validated); 
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_uuid' => 'required|uuid|exists:customers,uuid',
+            'items' => 'required|array|min:1',
+            'items.*.product_uuid' => 'required|uuid|exists:products,uuid',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        return $this->orderService->createOrder($validated);
     }
 
     public function show(string $uuid)
@@ -41,7 +43,14 @@ public function indexByCustomer($customerUuid)
 
     public function update(Request $request, string $uuid)
     {
-        return $this->orderService->updateOrder($uuid, $request->all());
+        $validated = $request->validate([
+            'customer_uuid' => 'sometimes|required|uuid|exists:customers,uuid',
+            'items' => 'sometimes|required|array|min:1',
+            'items.*.product_uuid' => 'required_with:items|uuid|exists:products,uuid',
+            'items.*.quantity' => 'required_with:items|integer|min:1',
+        ]);
+
+        return $this->orderService->updateOrder($uuid, $validated);
     }
 
     public function destroy(string $uuid)

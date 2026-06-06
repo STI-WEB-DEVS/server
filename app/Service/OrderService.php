@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use App\Repository\OrderRepository;
@@ -65,7 +64,7 @@ class OrderService
                 'total_amount' => $total
             ]);
 
-            return new OrderResource($order->load('items'));
+            return new OrderResource($order->load(['customer', 'items.product']));
         });
     }
 
@@ -77,9 +76,8 @@ class OrderService
 
     public function getOrder(string $uuid)
     {
-        $model = $this->customerRepository->findByUuid($uuid);
-        $orders = $model->orders()->with('items')->latest()->get();
-        return OrderResource::collection($orders);
+        $model = $this->orderRepository->findByUuid($uuid);
+        return new OrderResource($model);
     }
 
     public function getOrderByField(string $field, $value)
@@ -90,7 +88,45 @@ class OrderService
 
     public function updateOrder(string $uuid, array $payload)
     {
-        $model = $this->orderRepository->update($uuid, $payload);
+        if (isset($payload['items'])) {
+            return DB::transaction(function () use ($uuid, $payload) {
+                $order = $this->orderRepository->findByUuid($uuid);
+
+                if (isset($payload['customer_uuid'])) {
+                    $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
+                    $order->update(['customer_id' => $customer->id]);
+                }
+
+                $order->items()->delete();
+
+                $total = 0;
+
+                foreach ($payload['items'] as $item) {
+                    $product = $this->productRepository->findByUuid($item['product_uuid']);
+                    $quantity = $item['quantity'];
+                    $unitPrice = $product->price;
+                    $total += $unitPrice * $quantity;
+
+                    $order->items()->create([
+                        'product_id' => $product->id,
+                        'quantity' => $quantity,
+                        'unit_price' => $unitPrice,
+                    ]);
+                }
+
+                $order->update(['total_amount' => $total]);
+
+                return new OrderResource($order->load(['customer', 'items.product']));
+            });
+        }
+
+        if (isset($payload['customer_uuid'])) {
+            $customer = $this->customerRepository->findByUuid($payload['customer_uuid']);
+            $model = $this->orderRepository->update($uuid, ['customer_id' => $customer->id]);
+            return new OrderResource($model->load(['customer', 'items.product']));
+        }
+
+        $model = $this->orderRepository->findByUuid($uuid);
         return new OrderResource($model);
     }
 
@@ -111,6 +147,7 @@ class OrderService
         $customer = Customer::where('uuid', $customerUuid)->firstOrFail();
         
         $orders = Order::where('customer_id', $customer->id)
+                       ->with(['customer', 'items.product'])
                        ->latest()
                        ->paginate();
 

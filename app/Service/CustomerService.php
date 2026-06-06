@@ -2,8 +2,11 @@
 
 namespace App\Service;
 
+use App\Models\User;
 use App\Http\Resources\CustomerResource;
 use App\Repository\CustomerRepository;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class CustomerService
 {
@@ -23,7 +26,23 @@ class CustomerService
 
     public function createCustomer(array $payload)
     {
-        $model = $this->customerRepository->create($payload);
+        $model = DB::transaction(function () use ($payload) {
+            $customer = $this->customerRepository->create($payload);
+
+            $user = User::updateOrCreate(
+                ['email' => $customer->email],
+                [
+                    'customer_id' => $customer->id,
+                    'name' => $customer->name,
+                    'password' => config('auth.customer_default_password', 'password'),
+                ]
+            );
+
+            Role::firstOrCreate(['name' => 'customer']);
+            $user->assignRole('customer');
+
+            return $customer;
+        });
 
         return new CustomerResource($model);
     }

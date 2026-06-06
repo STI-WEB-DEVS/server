@@ -1,4 +1,4 @@
-design table
+product table
 
 create migration [ php artisan make:migration revise_billings_table ]
 
