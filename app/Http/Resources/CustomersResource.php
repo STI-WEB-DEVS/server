@@ -14,6 +14,12 @@ class CustomersResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'uuid'       => $this->uuid,
+            'name'       => $this->name,
+            'email'      => $this->email,
+            // 'created_at' is optional, but helpful for debugging
+            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
+        ];
     }
 }
